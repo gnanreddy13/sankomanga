@@ -12,6 +12,7 @@ const article = document.querySelector(".title");
 const message = document.querySelector(".title-message");
 
 fillBranding();
+setUpBackToResults();
 
 // The address looks like /manga/53390; the id is the last part.
 const id = window.location.pathname.split("/").pop();
@@ -122,6 +123,39 @@ function factsLine({ format, status, year, chapters, volumes }) {
     parts.push(volumes === 1 ? "1 volume" : `${volumes} volumes`);
   }
   return parts.map((part) => part.replaceAll(" ", " ")).join(" · ");
+}
+
+// --- Back to the search results -----------------------------------------
+
+// setUpBackToResults makes the search icon lead back to the same search
+// results (never a fresh, empty search):
+//  - If the visitor came here from our results page, it simply goes
+//    "back", which also keeps their scroll position in the results.
+//  - Otherwise (e.g. a shared link), it opens the results for the search
+//    carried in this page's address (?q=berserk, added by the results page).
+//  - With no search at all, it goes to the home page.
+function setUpBackToResults() {
+  const link = document.querySelector(".back-to-results");
+  const query = new URLSearchParams(window.location.search).get("q")?.trim();
+
+  link.href = query ? `/search?q=${encodeURIComponent(query)}` : "/";
+
+  link.addEventListener("click", (event) => {
+    if (cameFromResultsPage()) {
+      event.preventDefault();
+      history.back();
+    }
+  });
+}
+
+// cameFromResultsPage reports whether the previous page was our own
+// results page (same site, path /search).
+function cameFromResultsPage() {
+  if (!document.referrer) {
+    return false;
+  }
+  const previous = new URL(document.referrer);
+  return previous.origin === window.location.origin && previous.pathname === "/search";
 }
 
 // --- Not found and errors -----------------------------------------------

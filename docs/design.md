@@ -24,7 +24,7 @@ No box: the content sits directly on the page, centred.
 | Left | A tall, narrow window (about 250–310px wide, as tall as the right side) of popular covers (from `/api/showcase`, ecchi excluded) drifting up and down in three columns, endlessly: each column at its own slow speed, the middle one the other way. No box: the window fades into the black at the top and bottom (the sides stay crisp), and has a slight 3D tilt towards the text. A soft glow behind it slowly cycles through the covers' colours. Purely decorative: no hover or click. |
 | Right | Name and search grouped together in the vertical middle beside the covers. The app name and tagline, then the search below. (A short hairline rule under the tagline was tried and removed.) |
 | Tagline | Italic, muted grey. |
-| Search | Underline search, same style on both pages: a single grey line ("Search a title…", with a small ↵ return-arrow button on the right). A lighter grey part stretches full width while typing. Enter goes to `/search?q=...`. |
+| Search | Underline search, same style on both pages: a single grey line ("Search a title…"), with a small magnifying-glass button on the right (both pages). The button just turns white on hover (no backing). A lighter grey part stretches full width while typing. Enter goes to `/search?q=...`. |
 | Phones | Stacked and centred: a band of drifting covers (no tilt), then name + tagline, then search |
 | Motion | With "reduce motion" on: still covers, one fixed colour, no entrance animation. Drifting pauses while the tab is hidden. |
 | Loading / failure | Search works immediately; covers fade in (each shows its own colour while loading); a soft gradient if they can't load |
@@ -45,7 +45,7 @@ Centred, like the home page, on the same pure black.
 
 | Part | Decision |
 |---|---|
-| Header | Lined up with the left edge of the grid: "< manga-app", small and grey (links home; the chevron nudges left on hover); then a smaller version of the underline search holding the current search term; then the count in small italic grey ("6 results", or "20+ results" when there are more pages, since the API has no total). |
+| Header | Lined up with the left edge of the grid: "back to [home icon]" (small grey text and icon that simply turn white on hover; links home); then a smaller version of the underline search holding the current search term; then the count in small italic grey ("6 results", or "20+ results" when there are more pages, since the API has no total). |
 | Grid | A centred block about 800px wide. Balanced covers (~140px): 5 a row on laptops, 4 on tablets, 3 on phones (~105px). |
 | Card | Cover, title (up to 2 lines, then "…"), and one small dim info line like `2009 · Manga · ★ 8.4` (missing year or score left out; on phones the line only wraps between parts). The whole card links to `/manga/{id}`. |
 | Hover | The cover lifts a few pixels with a soft white glow behind it (the same colour for every cover); the title brightens. Same on keyboard focus. |
@@ -64,7 +64,11 @@ magnifying glass on both pages (the underline search won).
 
 A centred block (about 780px wide), centred vertically in the window too
 (like the home page; long pages simply start at the top and scroll), with
-"< manga-app" lined up with its left edge, like the results page.
+"back to [search icon]" above it, lined up with its left edge. It goes
+back to the same search results (never a fresh search): browser "back"
+when coming from the results page (keeps the scroll position), otherwise
+the results for the search carried in the address (`/manga/53390?q=berserk`,
+added by the result cards), or home when there was no search.
 
 | Part | Decision |
 |---|---|

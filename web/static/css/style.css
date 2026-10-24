@@ -241,16 +241,11 @@ body {
   transition: color 0.2s, background-color 0.2s;
 }
 
-/* Hover: a clear light-grey backing and a white arrow (a fainter wash
-   almost disappears on the pure black page). */
+/* Hover: the icon simply turns white (no button backing). */
 .search--line .search-button:hover {
   color: #fff;
-  background: rgba(255, 255, 255, 0.14);
+  background: transparent;
   transform: translateY(-50%);
-}
-
-.search--line .search-button:active {
-  background: rgba(255, 255, 255, 0.2);
 }
 
 /* A smaller search line (results page). */
@@ -484,30 +479,28 @@ body {
   margin-bottom: 36px;
 }
 
-/* "< manga-app": small and quiet; a link back to the home page. */
-.back-link {
+/* "back to [icon]" links at the top of a page: home (results page) and
+   search (title page). Small grey text plus an icon that simply turn
+   white on hover (no button backing). */
+.icon-link {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  height: 32px;
   font-size: 0.8125rem;
-  font-weight: 600;
-  letter-spacing: -0.02em;
   color: var(--text-muted);
   text-decoration: none;
+  border-radius: 4px; /* only shows in the keyboard focus outline */
   transition: color 0.2s;
 }
 
-.back-link svg {
-  transition: transform 0.25s var(--ease);
+.icon-link:hover {
+  color: #fff;
 }
 
-/* On hover the name brightens and the arrow nudges left, towards "back". */
-.back-link:hover {
-  color: var(--text);
-}
-
-.back-link:hover svg {
-  transform: translateX(-3px);
+.icon-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 /* The search line on this page: small (see .search--small), under the
@@ -709,9 +702,9 @@ body {
   justify-content: center;
 }
 
-/* Keep the back link only as wide as its text (a column layout would
-   otherwise stretch its clickable area across the whole page). */
-.title-page > .back-link {
+/* Keep the search icon its own size (a column layout would otherwise
+   stretch its clickable area across the whole page). */
+.title-page > .icon-link {
   align-self: flex-start;
 }
 
@@ -974,8 +967,7 @@ body {
   .showcase,
   .showcase-tile img,
   .showcase-glow,
-  .search--line::after,
-  .back-link svg {
+  .search--line::after {
     transition: none;
   }
 }

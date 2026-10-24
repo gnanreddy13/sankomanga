@@ -20,13 +20,14 @@
 <body>
   <main class="title-page">
 
-    <a class="back-link" href="/">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- A search icon: back to the search results this title came from
+         (manga.js sets where it goes; home if there was no search). -->
+    <a class="icon-link back-to-results" href="/" aria-label="Back to search results" title="Back to search results">
+      <span>back to</span>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <circle cx="10.5" cy="10.5" r="6.5" stroke="currentColor" stroke-width="1.9"/>
+        <path d="M15.5 15.5l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
       </svg>
-      <!-- In its own span: common.js replaces the text of anything marked
-           data-app-name, which would otherwise wipe out the chevron. -->
-      <span data-app-name></span>
     </a>
 
     <!-- The title: cover on the left, details on the right (stacked on

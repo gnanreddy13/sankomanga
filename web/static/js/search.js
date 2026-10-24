@@ -83,7 +83,9 @@ function createCard(manga) {
 
   const link = document.createElement("a");
   link.className = "card";
-  link.href = `/manga/${manga.id}`;
+  // The search goes along in the link (/manga/53390?q=berserk), so the
+  // title page's search icon can lead back to these same results.
+  link.href = `/manga/${manga.id}?q=${encodeURIComponent(query)}`;
   if (manga.coverColor) {
     // Used for the placeholder colour while the image loads.
     link.style.setProperty("--card-color", manga.coverColor);
