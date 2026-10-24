@@ -744,8 +744,8 @@ body {
   display: none;
 }
 
-/* The big cover, with a soft white glow behind it (the same glow as
-   hovering a cover on the results page). */
+/* The big cover, with a strong white glow behind it (a stronger version
+   of the glow on hovered covers on the results page). */
 .title-cover {
   flex: none;
   width: 240px;
@@ -754,9 +754,11 @@ body {
   border-radius: 8px;
   /* While the image loads: the cover's own colour, dimmed. */
   background-color: color-mix(in srgb, var(--cover-color, #2a2a30) 25%, #0b0b0d);
+  /* The glow (white for every title): a strong soft glow spreading out
+     below the cover, plus a faint even halo all around its edges. */
   box-shadow:
-    0 24px 60px -24px rgba(255, 255, 255, 0.2),
-    0 20px 40px -20px rgba(0, 0, 0, 0.9);
+    0 22px 80px -16px rgba(255, 255, 255, 0.34),
+    0 0 36px rgba(255, 255, 255, 0.08);
 }
 
 .title-cover img {

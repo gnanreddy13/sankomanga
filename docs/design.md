@@ -73,7 +73,7 @@ added by the result cards), or home when there was no search.
 | Part | Decision |
 |---|---|
 | Layout | Cover beside details: the cover on the left, everything else on the right. Phones: stacked, the cover (~180px) centred on top. |
-| Cover | About 240px wide, with a soft white glow behind it (same as the results hover). Shows its dimmed own colour until the image fades in. |
+| Cover | About 240px wide, with a strong white glow behind it (the same colour for every title; stronger than the results hover glow): a soft glow spreading below, plus a faint halo around the edges. Shows its dimmed own colour until the image fades in. |
 | Title | Large, then the subtitle in italic grey (hidden when there isn't one). |
 | Facts | One quiet grey line, e.g. `Manga · Finished · 2009 · 141 chapters · 34 volumes`. Missing facts drop out (an ongoing series reads `Manga · Releasing · 1997`). Wraps only between parts. |
 | Score | On its own line, larger and white: `★ 8.4`. Hidden when unknown. |
