@@ -294,7 +294,9 @@ body {
 .hero {
   display: flex;
   align-items: stretch; /* the right side is exactly as tall as the covers */
-  gap: clamp(32px, 4.5vw, 60px);
+  /* Tight, so the covers and the text read as one composition. (The
+     covers' tilt makes the visible space about 9px less than this.) */
+  gap: clamp(28px, 3.5vw, 44px);
 }
 
 /* Right side: name, tagline and search grouped together in the vertical
