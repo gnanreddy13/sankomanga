@@ -2,7 +2,7 @@ package main
 
 import (
 	"encoding/json"
-	"log"
+	"log/slog"
 	"net/http"
 )
 
@@ -17,7 +17,7 @@ func writeJSON(w http.ResponseWriter, status int, v any) {
 	// writing, the client would get a 200 status with a broken body.
 	body, err := json.Marshal(v)
 	if err != nil {
-		log.Printf("error: encoding JSON response: %v", err)
+		slog.Error("encoding JSON response", "err", err)
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(`{"error":"internal error"}`))

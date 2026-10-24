@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
+	"log/slog"
 	"net/http"
 	"strconv"
 	"strings"
@@ -106,7 +106,7 @@ func (a *app) handleMangaDetail(w http.ResponseWriter, r *http.Request) {
 	// If AniList ever adds a status we don't know, we show null. Log it so
 	// we notice and can add the new status to statusText in display.go.
 	if media.Status != nil && detail.Status == nil {
-		log.Printf("warning: unknown AniList status %q for manga %d", *media.Status, media.ID)
+		slog.Warn("unknown AniList status", "status", *media.Status, "id", media.ID)
 	}
 
 	writeJSON(w, http.StatusOK, detail)
@@ -157,7 +157,7 @@ func writeUpstreamError(w http.ResponseWriter, err error) {
 		writeError(w, http.StatusNotFound, "manga not found")
 
 	case errors.As(err, &rateErr):
-		log.Printf("warning: %v", err)
+		slog.Warn("AniList rate limited us", "err", err)
 		// Pass AniList's requested wait on to the visitor, if it gave one.
 		if rateErr.RetryAfterSeconds > 0 {
 			w.Header().Set("Retry-After", strconv.Itoa(rateErr.RetryAfterSeconds))
@@ -165,15 +165,15 @@ func writeUpstreamError(w http.ResponseWriter, err error) {
 		writeError(w, http.StatusServiceUnavailable, unavailable)
 
 	case errors.Is(err, errUpstreamUnavailable):
-		log.Printf("error: %v", err)
+		slog.Error("AniList unavailable", "err", err)
 		writeError(w, http.StatusServiceUnavailable, unavailable)
 
 	case errors.Is(err, errUpstreamBad):
-		log.Printf("error: %v", err)
+		slog.Error("AniList sent a bad response", "err", err)
 		writeError(w, http.StatusBadGateway, "upstream service error")
 
 	default:
-		log.Printf("error: unexpected: %v", err)
+		slog.Error("unexpected error", "err", err)
 		writeError(w, http.StatusInternalServerError, "internal error")
 	}
 }

@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
@@ -16,6 +16,11 @@ import (
 const shutdownTimeout = 15 * time.Second
 
 func main() {
+	// All logging goes through slog ("structured logging"): every line is
+	// key=value pairs, e.g. `level=INFO msg=request status=200 dur_ms=3.1`,
+	// which is easy to read and easy to search or filter.
+	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stdout, nil)))
+
 	addr := ":" + port()
 
 	// The handlers get their manga data from the real AniList client.
@@ -25,8 +30,10 @@ func main() {
 	// directly, because the shortcut has no timeouts. Without them, a slow or
 	// malicious client can hold a connection open forever.
 	server := &http.Server{
-		Addr:    addr,
-		Handler: newRouter(a),
+		Addr: addr,
+		// logRequests (middleware.go) wraps every route, so every request
+		// is logged and gets a Server-Timing header.
+		Handler: logRequests(newRouter(a)),
 
 		// Limit how long a client may take to send its request headers.
 		ReadHeaderTimeout: 5 * time.Second,
@@ -49,14 +56,15 @@ func main() {
 	// to wait for either a stop signal or the server failing.
 	serverFailed := make(chan error, 1)
 	go func() {
-		log.Printf("%s listening on http://localhost%s", appName, addr)
+		slog.Info("listening", "app", appName, "url", "http://localhost"+addr)
 		serverFailed <- server.ListenAndServe()
 	}()
 
 	select {
 	case err := <-serverFailed:
 		// The server couldn't start or crashed, e.g. the port is already in use.
-		log.Fatalf("server failed: %v", err)
+		slog.Error("server failed", "err", err)
+		os.Exit(1)
 	case <-stopSignal.Done():
 		// Go back to normal signal handling, so pressing Ctrl-C a second
 		// time stops the program immediately instead of waiting.
@@ -66,13 +74,13 @@ func main() {
 	// Shutdown stops accepting new requests, lets in-flight ones finish,
 	// and then returns. If they take longer than shutdownTimeout, it gives
 	// up and we exit anyway.
-	log.Printf("shutting down, waiting up to %s for requests to finish", shutdownTimeout)
+	slog.Info("shutting down, waiting for requests to finish", "max_wait", shutdownTimeout)
 	ctx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
 	defer cancel()
 
 	if err := server.Shutdown(ctx); err != nil {
-		log.Printf("shutdown did not finish cleanly: %v", err)
+		slog.Error("shutdown did not finish cleanly", "err", err)
 		return
 	}
-	log.Printf("stopped")
+	slog.Info("stopped")
 }
