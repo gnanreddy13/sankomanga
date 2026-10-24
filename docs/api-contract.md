@@ -174,7 +174,8 @@ screen design.
     {
       "id": 105778,
       "title": "Chainsaw Man",
-      "coverUrl": "https://s4.anilist.co/file/anilistcdn/media/manga/cover/large/....jpg",
+      "coverUrl": "https://s4.anilist.co/file/anilistcdn/media/manga/cover/medium/....jpg",
+      "coverUrl2x": "https://s4.anilist.co/file/anilistcdn/media/manga/cover/large/....jpg",
       "coverColor": "#f1c90d"
     }
   ]
@@ -185,11 +186,12 @@ screen design.
 |---|---|---|---|
 | `id` | int | no | `id` (unused today; keeps clickable covers possible) |
 | `title` | string | no | See [Title rules](#title-rules) (unused today) |
-| `coverUrl` | string | no | `coverImage.extraLarge` (the home page shows these covers large). Titles without a cover are left out. |
+| `coverUrl` | string | no | `coverImage.large` (230px wide), for ordinary screens. Titles without a cover are left out. |
+| `coverUrl2x` | string | no | `coverImage.extraLarge` (460px wide), for sharp "Retina" screens; the same as `coverUrl` if AniList has no extra-large image. The browser picks between the two. |
 | `coverColor` | string | yes | `coverImage.color`, placeholder while the image loads |
 
 - Up to 30 covers, most popular first. `covers` may be `[]`; the frontend
-  then shows its fallback gradient.
+  then leaves the rows empty.
 - Cached on the server for 6 hours; `Cache-Control: public, max-age=3600`.
 - Counts towards the per-IP limit like the other data endpoints.
 

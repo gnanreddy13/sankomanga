@@ -414,8 +414,8 @@ func TestClientPausesAfterAniList429(t *testing.T) {
 
 func TestPopularMangaSuccess(t *testing.T) {
 	const body = `{"data":{"Page":{"media":[
-		{"id":105778,"title":{"romaji":"Chainsaw Man"},"coverImage":{"extraLarge":"https://example.com/large/csm.jpg","color":"#f1c90d"}},
-		{"id":101517,"title":{"romaji":"Jujutsu Kaisen"},"coverImage":{"extraLarge":"https://example.com/large/jjk.jpg","color":"#e4a15d"}}
+		{"id":105778,"title":{"romaji":"Chainsaw Man"},"coverImage":{"large":"https://example.com/medium/csm.jpg","extraLarge":"https://example.com/large/csm.jpg","color":"#f1c90d"}},
+		{"id":101517,"title":{"romaji":"Jujutsu Kaisen"},"coverImage":{"large":"https://example.com/medium/jjk.jpg","extraLarge":"https://example.com/large/jjk.jpg","color":"#e4a15d"}}
 	]}}}`
 
 	requests := make(chan sentRequest, 1)
@@ -436,7 +436,9 @@ func TestPopularMangaSuccess(t *testing.T) {
 		t.Errorf("perPage = %v, want 30", sent.Body.Variables["perPage"])
 	}
 
-	if len(popular) != 2 || popular[0].ID != 105778 || *popular[1].CoverImage.ExtraLarge != "https://example.com/large/jjk.jpg" {
+	if len(popular) != 2 || popular[0].ID != 105778 ||
+		*popular[1].CoverImage.Large != "https://example.com/medium/jjk.jpg" ||
+		*popular[1].CoverImage.ExtraLarge != "https://example.com/large/jjk.jpg" {
 		t.Errorf("decoded wrongly: %+v", popular)
 	}
 }

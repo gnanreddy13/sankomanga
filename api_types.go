@@ -57,23 +57,32 @@ type showcaseCover struct {
 	ID         int     `json:"id"`
 	Title      string  `json:"title"`
 	CoverURL   string  `json:"coverUrl"`
+	CoverURL2x string  `json:"coverUrl2x"`
 	CoverColor *string `json:"coverColor"`
 }
 
-// toShowcaseResponse builds the showcase response. It uses the biggest
-// cover image (coverImage.extraLarge), because the home page shows the
-// covers large in its fan. Titles without a cover image are skipped: a
-// cover is the only thing the showcase shows.
+// toShowcaseResponse builds the showcase response. It sends two sizes of
+// each cover, so the browser can pick the one that fits the screen:
+// coverImage.large (230px wide; plenty for ordinary screens) and
+// coverImage.extraLarge (460px wide; for sharp "Retina" screens, which
+// draw two or more pixels per CSS pixel). If AniList has no extra-large
+// image, the normal one is used for both. Titles without a cover image
+// are skipped: a cover is the only thing the showcase shows.
 func toShowcaseResponse(popular []anilistMedia) showcaseResponse {
 	covers := make([]showcaseCover, 0, len(popular))
 	for _, m := range popular {
-		if m.CoverImage.ExtraLarge == nil || *m.CoverImage.ExtraLarge == "" {
+		if m.CoverImage.Large == nil || *m.CoverImage.Large == "" {
 			continue
+		}
+		cover2x := *m.CoverImage.Large
+		if m.CoverImage.ExtraLarge != nil && *m.CoverImage.ExtraLarge != "" {
+			cover2x = *m.CoverImage.ExtraLarge
 		}
 		covers = append(covers, showcaseCover{
 			ID:         m.ID,
 			Title:      displayTitle(m.Title),
-			CoverURL:   *m.CoverImage.ExtraLarge,
+			CoverURL:   *m.CoverImage.Large,
+			CoverURL2x: cover2x,
 			CoverColor: m.CoverImage.Color,
 		})
 	}
