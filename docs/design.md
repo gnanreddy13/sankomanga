@@ -24,7 +24,7 @@ No box: the content sits directly on the page, centred.
 | Left | A tall, narrow window (about 250–310px wide, as tall as the right side) of popular covers (from `/api/showcase`, ecchi excluded) drifting up and down in three columns, endlessly: each column at its own slow speed, the middle one the other way. No box: the window fades into the black at the top and bottom (the sides stay crisp), and has a slight 3D tilt towards the text. A soft glow behind it slowly cycles through the covers' colours. Purely decorative: no hover or click. |
 | Right | Name and search grouped together in the vertical middle beside the covers. The app name and tagline, then the search below. (A short hairline rule under the tagline was tried and removed.) |
 | Tagline | Italic, muted grey. |
-| Search | Underline search ("Search a title…", with a small return-arrow button). The line is grey; a lighter grey part stretches full width while typing. Enter goes to `/search?q=...`. |
+| Search | Underline search, same style on both pages: a single grey line ("Search a title…", with a small ↵ return-arrow button on the right). A lighter grey part stretches full width while typing. Enter goes to `/search?q=...`. |
 | Phones | Stacked and centred: a band of drifting covers (no tilt), then name + tagline, then search |
 | Motion | With "reduce motion" on: still covers, one fixed colour, no entrance animation. Drifting pauses while the tab is hidden. |
 | Loading / failure | Search works immediately; covers fade in (each shows its own colour while loading); a soft gradient if they can't load |
@@ -41,14 +41,24 @@ Tried and dropped for the home page (kept here so we don't repeat them):
 
 ## Results screen
 
-- Slim top bar: app name on the left (links home), compact search bar.
-- Grid of cards. Medium covers (about 160px): ~2 per row on phones, 4 on
-  tablets, 5–6 on a laptop.
-- Card: cover, title (up to 2 lines), one small grey line like
-  `2009 · Manga · ★ 8.4`. Missing year or score is left out of the line.
-- Grey placeholder cards while loading. Covers lazy-load and show their
-  `coverColor` until the image arrives.
-- No results: "No manga found for 'xyz'" with a hint to check the spelling.
+Centred, like the home page, on the same pure black.
+
+| Part | Decision |
+|---|---|
+| Header | Lined up with the left edge of the grid: "< manga-app", small and grey (links home; the chevron nudges left on hover); then a smaller version of the underline search holding the current search term; then the count in small italic grey ("6 results", or "20+ results" when there are more pages, since the API has no total). |
+| Grid | A centred block about 800px wide. Balanced covers (~140px): 5 a row on laptops, 4 on tablets, 3 on phones (~105px). |
+| Card | Cover, title (up to 2 lines, then "…"), and one small dim info line like `2009 · Manga · ★ 8.4` (missing year or score left out; on phones the line only wraps between parts). The whole card links to `/manga/{id}`. |
+| Hover | The cover lifts a few pixels with a soft white glow behind it (the same colour for every cover); the title brightens. Same on keyboard focus. |
+| Loading | Header right away; 20 dark placeholder cards with a slow, faint shimmer. Covers lazy-load and show their dimmed `coverColor` until the image fades in. |
+| No results | In the count's place: "No manga found for "xyz". Check the spelling, or try the English or Japanese title." |
+| More than 20 | Under the grid: "Showing the 20 best matches. Try a more specific title to narrow it down." ("Load more" is a later feature.) |
+| Errors | One calm line instead of the grid: AniList busy (502/503), visitor rate-limited (429), or "Something went wrong" for anything else. |
+| Motion | With "reduce motion" on: no lift, no shimmer. |
+
+Tried and dropped: a slim top bar with the name and search side by side;
+the search term as a big centred headline over an underline; a centred
+soft grey pill with a grain texture; a grey-outlined pill with a
+magnifying glass on both pages (the underline search won).
 
 ## Title page
 

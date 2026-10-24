@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#000000">
+  <meta name="description" content="Search results for Japanese manga.">
+  <!-- The real title is filled in by search.js. -->
+  <title></title>
+
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2309090b'/%3E%3Crect x='9' y='7' width='14' height='18' rx='2' fill='%23e9e5dc'/%3E%3C/svg%3E">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+
+  <link rel="stylesheet" href="/static/css/style.css">
+  <script type="module" src="/static/js/search.js"></script>
+</head>
+<body>
+  <main class="results-page">
+
+    <!-- Header, lined up with the left edge of the grid: "< manga-app"
+         (back to home), then a small search line holding the current
+         search term (type and press Enter to search again), then the count. -->
+    <header class="results-header">
+      <a class="results-home" href="/">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <!-- The name goes in its own span: common.js replaces the text of
+             anything marked data-app-name, which would wipe out the arrow. -->
+        <span data-app-name></span>
+      </a>
+
+      <form class="search search--line search--small" action="/search" method="get" role="search">
+        <label class="visually-hidden" for="search-input">Search manga</label>
+        <input
+          class="search-input"
+          id="search-input"
+          type="search"
+          name="q"
+          placeholder="Search a title…"
+          maxlength="100"
+          autocomplete="off"
+          spellcheck="false"
+          enterkeyhint="search"
+          required>
+        <button class="search-button" type="submit" aria-label="Search">
+          <!-- A small "return" arrow: press Enter to search. -->
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M19 5v7a3 3 0 0 1-3 3H6M10 11l-4 4 4 4" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </form>
+
+      <!-- "12 results", or a message such as "No manga found". -->
+      <p class="results-status" aria-live="polite"></p>
+    </header>
+
+    <!-- The cards, filled in by search.js. -->
+    <ul class="results-grid" aria-label="Search results"></ul>
+
+    <!-- e.g. "Showing the 20 best matches." -->
+    <p class="results-note"></p>
+  </main>
+
+  <footer class="site-footer">
+    Data from <a href="https://anilist.co" target="_blank" rel="noopener noreferrer">AniList</a>
+  </footer>
+</body>
+</html>

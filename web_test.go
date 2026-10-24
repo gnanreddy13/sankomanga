@@ -16,6 +16,8 @@ func TestWebRoutes(t *testing.T) {
 		wantBodyHas     string
 	}{
 		{"home page", http.MethodGet, "/", http.StatusOK, "text/html", `action="/search"`},
+		{"results page", http.MethodGet, "/search?q=berserk", http.StatusOK, "text/html", "search.js"},
+		{"results script", http.MethodGet, "/static/js/search.js", http.StatusOK, "text/javascript", "renderResults"},
 		{"stylesheet", http.MethodGet, "/static/css/style.css", http.StatusOK, "text/css", "--bg"},
 		{"home script", http.MethodGet, "/static/js/home.js", http.StatusOK, "text/javascript", "buildColumns"},
 		{"config script", http.MethodGet, "/static/js/config.js", http.StatusOK, "text/javascript", "APP_NAME"},

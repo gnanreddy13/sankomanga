@@ -11,6 +11,9 @@ func newRouter(a *app) http.Handler {
 	site := siteFiles()
 	// "/{$}" means exactly "/", not "everything starting with /".
 	mux.HandleFunc("GET /{$}", servePage(site, "index.html"))
+	// The results page. The query (?q=...) is read by search.js in the
+	// browser, which then calls /api/search.
+	mux.HandleFunc("GET /search", servePage(site, "search.html"))
 	// CSS, JavaScript, and other files: /static/css/style.css is the file
 	// web/static/css/style.css.
 	mux.HandleFunc("GET /static/", serveStatic(site))
