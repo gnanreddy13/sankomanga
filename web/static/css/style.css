@@ -675,6 +675,12 @@ body {
     margin-bottom: 32px;
   }
 
+  /* On phones the search line spans the full width, lining up with both
+     edges of the grid below (on desktop it stays a compact 280px). */
+  .results-header .search {
+    width: 100%;
+  }
+
   .results-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 24px 12px;
