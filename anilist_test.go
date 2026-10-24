@@ -407,3 +407,32 @@ func TestClientPausesAfterAniList429(t *testing.T) {
 		t.Errorf("fake AniList got %d calls, want 1 (the second must be held back)", got)
 	}
 }
+
+func TestPopularMangaSuccess(t *testing.T) {
+	const body = `{"data":{"Page":{"media":[
+		{"id":105778,"title":{"romaji":"Chainsaw Man"},"coverImage":{"large":"https://example.com/medium/csm.jpg","color":"#f1c90d"}},
+		{"id":101517,"title":{"romaji":"Jujutsu Kaisen"},"coverImage":{"large":"https://example.com/medium/jjk.jpg","color":"#e4a15d"}}
+	]}}}`
+
+	requests := make(chan sentRequest, 1)
+	client := newFakeAniList(t, recordAndRespond(t, requests, body))
+
+	popular, err := client.popularManga(context.Background())
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	sent := <-requests
+	for _, want := range []string{mangaFilters, `genre_not_in: ["Ecchi"]`, "POPULARITY_DESC"} {
+		if !strings.Contains(sent.Body.Query, want) {
+			t.Errorf("query is missing %s:\n%s", want, sent.Body.Query)
+		}
+	}
+	if sent.Body.Variables["perPage"] != 15.0 {
+		t.Errorf("perPage = %v, want 15", sent.Body.Variables["perPage"])
+	}
+
+	if len(popular) != 2 || popular[0].ID != 105778 || *popular[1].CoverImage.Large != "https://example.com/medium/jjk.jpg" {
+		t.Errorf("decoded wrongly: %+v", popular)
+	}
+}

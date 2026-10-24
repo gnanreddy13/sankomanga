@@ -38,6 +38,10 @@ const (
 	// user-specific responses must use "private" or "no-store" instead.
 	cacheControlPublic = "public, max-age=300"
 
+	// cacheControlShowcase: the home page covers change only every few
+	// hours, so browsers may keep them for an hour.
+	cacheControlShowcase = "public, max-age=3600"
+
 	// cacheControlNoStore: never keep the answer. Used for errors (a
 	// "try again shortly" must not be replayed for 5 minutes) and for the
 	// health check (which must always reflect the server right now).

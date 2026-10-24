@@ -96,6 +96,24 @@ query ($id: Int) {
   }
 }`
 
+// showcaseQuery asks for the most popular titles, for the decorative covers
+// on the home page. Ecchi is excluded here only (not in search), so the
+// first thing visitors see is never fan-service art. The genre_not_in
+// argument was confirmed against AniList's schema.
+const showcaseQuery = `
+query ($perPage: Int) {
+  Page(page: 1, perPage: $perPage) {
+    media(` + mangaFilters + `, genre_not_in: ["Ecchi"], sort: [POPULARITY_DESC]) {
+      id
+      title { romaji english native }
+      coverImage { large color }
+    }
+  }
+}`
+
+// showcaseSize is how many covers the home page showcase gets.
+const showcaseSize = 15
+
 // These errors describe what went wrong in a way the HTTP handlers can act
 // on, without knowing anything about AniList. Handlers check them with
 // errors.Is, e.g. errors.Is(err, errNotFound).
@@ -327,6 +345,23 @@ func (c *anilistClient) getManga(ctx context.Context, id int) (anilistMedia, err
 		return anilistMedia{}, errNotFound
 	}
 	return *data.Media, nil
+}
+
+// popularManga returns the most popular titles (minus ecchi) for the
+// home page showcase.
+func (c *anilistClient) popularManga(ctx context.Context) ([]anilistMedia, error) {
+	variables := map[string]any{"perPage": showcaseSize}
+
+	var data struct {
+		Page struct {
+			Media []anilistMedia `json:"media"`
+		} `json:"Page"`
+	}
+
+	if err := c.query(ctx, showcaseQuery, variables, &data); err != nil {
+		return nil, err
+	}
+	return data.Page.Media, nil
 }
 
 // graphqlRequest is the JSON body every GraphQL API expects.

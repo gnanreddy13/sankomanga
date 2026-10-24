@@ -37,6 +37,7 @@ const (
 type mangaSource interface {
 	searchManga(ctx context.Context, search string, page int) (anilistSearchResult, error)
 	getManga(ctx context.Context, id int) (anilistMedia, error)
+	popularManga(ctx context.Context) ([]anilistMedia, error)
 }
 
 // app holds what the handlers need. The handlers are methods on it, so
@@ -113,6 +114,19 @@ func (a *app) handleMangaDetail(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Cache-Control", cacheControlPublic)
 	writeJSON(w, http.StatusOK, detail)
+}
+
+// handleShowcase answers GET /api/showcase: covers of popular titles for
+// the decorative animation on the home page.
+func (a *app) handleShowcase(w http.ResponseWriter, r *http.Request) {
+	popular, err := a.source.popularManga(r.Context())
+	if err != nil {
+		writeUpstreamError(w, err)
+		return
+	}
+
+	w.Header().Set("Cache-Control", cacheControlShowcase)
+	writeJSON(w, http.StatusOK, toShowcaseResponse(popular))
 }
 
 // handleAPINotFound answers any /api/... path we don't recognise, so that

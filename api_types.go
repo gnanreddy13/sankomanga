@@ -44,6 +44,39 @@ type mangaDetail struct {
 	URL        string   `json:"url"`
 }
 
+// showcaseResponse is the body of GET /api/showcase.
+type showcaseResponse struct {
+	Covers []showcaseCover `json:"covers"`
+}
+
+// showcaseCover is one decorative cover on the home page. id and title
+// aren't shown today, but they cost nothing and keep the door open for
+// making covers clickable later.
+type showcaseCover struct {
+	ID         int     `json:"id"`
+	Title      string  `json:"title"`
+	CoverURL   string  `json:"coverUrl"`
+	CoverColor *string `json:"coverColor"`
+}
+
+// toShowcaseResponse builds the showcase response. Titles without a
+// cover image are skipped: a cover is the only thing the showcase shows.
+func toShowcaseResponse(popular []anilistMedia) showcaseResponse {
+	covers := make([]showcaseCover, 0, len(popular))
+	for _, m := range popular {
+		if m.CoverImage.Large == nil || *m.CoverImage.Large == "" {
+			continue
+		}
+		covers = append(covers, showcaseCover{
+			ID:         m.ID,
+			Title:      displayTitle(m.Title),
+			CoverURL:   *m.CoverImage.Large,
+			CoverColor: m.CoverImage.Color,
+		})
+	}
+	return showcaseResponse{Covers: covers}
+}
+
 // toSearchResponse builds the search response from one page of results.
 func toSearchResponse(query string, page int, result anilistSearchResult) searchResponse {
 	// make(..., 0, n) creates an empty (not nil) list, so the JSON is

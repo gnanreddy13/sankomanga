@@ -19,6 +19,7 @@ type fakeSource struct {
 	// What to return.
 	searchResult anilistSearchResult
 	media        anilistMedia
+	popular      []anilistMedia
 	err          error
 
 	// What the handler asked for (zero values mean "not called").
@@ -27,8 +28,14 @@ type fakeSource struct {
 	gotID     int
 
 	// How many times each method was called (used by the cache tests).
-	searchCalls int
-	getCalls    int
+	searchCalls  int
+	getCalls     int
+	popularCalls int
+}
+
+func (f *fakeSource) popularManga(ctx context.Context) ([]anilistMedia, error) {
+	f.popularCalls++
+	return f.popular, f.err
 }
 
 func (f *fakeSource) searchManga(ctx context.Context, search string, page int) (anilistSearchResult, error) {
@@ -275,6 +282,43 @@ func TestMangaDetailInvalidID(t *testing.T) {
 	}
 }
 
+func TestShowcase(t *testing.T) {
+	source := &fakeSource{
+		popular: []anilistMedia{
+			{
+				ID:         105778,
+				Title:      anilistTitle{Romaji: ptr("Chainsaw Man")},
+				CoverImage: anilistCoverImage{Large: ptr("https://example.com/medium/csm.jpg"), Color: ptr("#f1c90d")},
+			},
+			{
+				// No cover image: skipped, since the showcase only shows covers.
+				ID:    1,
+				Title: anilistTitle{Romaji: ptr("No Cover")},
+			},
+			{
+				ID:         74347,
+				Title:      anilistTitle{Romaji: ptr("One Punch-Man")},
+				CoverImage: anilistCoverImage{Large: ptr("https://example.com/medium/opm.jpg")},
+			},
+		},
+	}
+
+	rec := serve(source, http.MethodGet, "/api/showcase")
+
+	assertJSON(t, rec, http.StatusOK, `{"covers": [
+		{"id": 105778, "title": "Chainsaw Man", "coverUrl": "https://example.com/medium/csm.jpg", "coverColor": "#f1c90d"},
+		{"id": 74347, "title": "One Punch-Man", "coverUrl": "https://example.com/medium/opm.jpg", "coverColor": null}
+	]}`)
+	if got := rec.Header().Get("Cache-Control"); got != "public, max-age=3600" {
+		t.Errorf("Cache-Control = %q, want public, max-age=3600", got)
+	}
+}
+
+func TestShowcaseEmpty(t *testing.T) {
+	rec := serve(&fakeSource{}, http.MethodGet, "/api/showcase")
+	assertJSON(t, rec, http.StatusOK, `{"covers":[]}`)
+}
+
 func TestCacheControlHeaders(t *testing.T) {
 	tests := []struct {
 		name   string
@@ -322,7 +366,10 @@ func TestUpstreamErrors(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		for _, path := range []string{"/api/manga/1", "/api/search?q=x"} {
+		for _, path := range []string{"/api/manga/1", "/api/search?q=x", "/api/showcase"} {
+			if path == "/api/showcase" && tt.err == errNotFound {
+				continue // the showcase can't be "not found"
+			}
 			t.Run(tt.name+" "+path, func(t *testing.T) {
 				rec := serve(&fakeSource{err: tt.err}, http.MethodGet, path)
 

@@ -35,6 +35,11 @@ const (
 	// budget by requesting the same missing id over and over.
 	notFoundCacheTTL = 10 * time.Minute
 
+	// showcaseCacheTTL is how long the home page's popular covers are kept.
+	// Popularity rankings barely move within hours, so we ask AniList at
+	// most about 4 times a day.
+	showcaseCacheTTL = 6 * time.Hour
+
 	// maxCacheEntries caps the cache's size. Each entry is a few KB at
 	// most, so 1,000 entries is roughly 5 MB: tiny next to AniList's
 	// catalog of about 100,000 manga, and never a growing copy of it.
@@ -182,6 +187,23 @@ func (c *cachingSource) getManga(ctx context.Context, id int) (anilistMedia, err
 	}
 	c.cache.set(key, media, nil, detailCacheTTL)
 	return media, nil
+}
+
+func (c *cachingSource) popularManga(ctx context.Context) ([]anilistMedia, error) {
+	const key = "showcase"
+
+	if entry, ok := c.cache.get(key); ok {
+		markCacheResult(ctx, cacheHit)
+		return entry.value.([]anilistMedia), nil
+	}
+	markCacheResult(ctx, cacheMiss)
+
+	popular, err := c.next.popularManga(ctx)
+	if err != nil {
+		return nil, err // errors are never cached
+	}
+	c.cache.set(key, popular, nil, showcaseCacheTTL)
+	return popular, nil
 }
 
 // searchCacheKey builds the cache key for a search. Upper/lower case and

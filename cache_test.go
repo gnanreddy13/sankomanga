@@ -264,3 +264,38 @@ func TestSearchCacheKey(t *testing.T) {
 		t.Errorf("different pages must have different keys")
 	}
 }
+
+func TestCachingSourceShowcase(t *testing.T) {
+	source := &fakeSource{popular: []anilistMedia{{ID: 1}, {ID: 2}}}
+	cs, clock := newTestCachingSource(source)
+
+	cs.popularManga(context.Background())
+
+	clock.advance(showcaseCacheTTL - time.Second)
+	ctx, info := recordingContext()
+	popular, err := cs.popularManga(ctx)
+	if err != nil || len(popular) != 2 || info.cacheResult != cacheHit {
+		t.Fatalf("got %v, %v, cache=%q; want a cache hit", popular, err, info.cacheResult)
+	}
+	if source.popularCalls != 1 {
+		t.Errorf("source called %d times, want 1", source.popularCalls)
+	}
+
+	clock.advance(time.Second) // now expired
+	cs.popularManga(context.Background())
+	if source.popularCalls != 2 {
+		t.Errorf("expired showcase should have asked the source again")
+	}
+}
+
+func TestCachingSourceShowcaseErrorsNotCached(t *testing.T) {
+	source := &fakeSource{err: errUpstreamUnavailable}
+	cs, _ := newTestCachingSource(source)
+
+	cs.popularManga(context.Background())
+	cs.popularManga(context.Background())
+
+	if source.popularCalls != 2 {
+		t.Errorf("error was cached: source called %d times, want 2", source.popularCalls)
+	}
+}

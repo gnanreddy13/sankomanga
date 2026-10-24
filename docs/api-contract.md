@@ -156,6 +156,42 @@ An id that AniList doesn't know, or that our filters exclude, gives `404`.
 
 ---
 
+## `GET /api/showcase`
+
+Covers for the decorative animation on the home page: the most popular
+Japanese manga, **with the Ecchi genre excluded** (for this endpoint only;
+search is unchanged). Added after the original contract, for the home
+screen design.
+
+### Response `200`
+
+```json
+{
+  "covers": [
+    {
+      "id": 105778,
+      "title": "Chainsaw Man",
+      "coverUrl": "https://s4.anilist.co/file/anilistcdn/media/manga/cover/medium/....jpg",
+      "coverColor": "#f1c90d"
+    }
+  ]
+}
+```
+
+| Field | Type | Nullable | Source / rule |
+|---|---|---|---|
+| `id` | int | no | `id` (unused today; keeps clickable covers possible) |
+| `title` | string | no | See [Title rules](#title-rules) (unused today) |
+| `coverUrl` | string | no | `coverImage.large`. Titles without a cover are left out. |
+| `coverColor` | string | yes | `coverImage.color`, placeholder while the image loads |
+
+- Up to 15 covers, most popular first. `covers` may be `[]`; the frontend
+  then shows its fallback gradient.
+- Cached on the server for 6 hours; `Cache-Control: public, max-age=3600`.
+- Counts towards the per-IP limit like the other data endpoints.
+
+---
+
 ## Display rules (done in Go)
 
 ### Title rules
@@ -255,6 +291,20 @@ query ($id: Int) {
 ```
 For an unknown or filtered id this returns HTTP 404 with `{"data":{"Media":null}}`.
 We map that to our own 404.
+
+**Showcase query**
+```graphql
+query ($perPage: Int) {
+  Page(page: 1, perPage: $perPage) {
+    media(type: MANGA, countryOfOrigin: "JP", format_in: [MANGA, ONE_SHOT],
+          isAdult: false, genre_not_in: ["Ecchi"], sort: [POPULARITY_DESC]) {
+      id
+      title { romaji english native }
+      coverImage { large color }
+    }
+  }
+}
+```
 
 **How we map AniList failures**
 | AniList | Us |
