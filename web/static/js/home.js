@@ -2,7 +2,7 @@
 // the left with popular covers (from /api/showcase) drifting up and down
 // in three columns, endlessly.
 
-import { fillBranding, preventEmptySearch } from "./common.js";
+import { addClearButton, fillBranding, preventEmptySearch } from "./common.js";
 
 // The fewest covers a column needs to be tall enough to drift smoothly.
 const MIN_COVERS_PER_COLUMN = 6;
@@ -16,6 +16,7 @@ const glow = document.querySelector(".showcase-glow");
 
 fillBranding();
 preventEmptySearch(document.querySelector(".search"));
+addClearButton(document.querySelector(".search"));
 loadShowcase();
 pauseWhileHidden();
 

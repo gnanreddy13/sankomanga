@@ -30,6 +30,47 @@ export function errorMessage(statusCode) {
   }
 }
 
+// addClearButton adds a small "×" to a search form that empties the search
+// box. It only shows while there's text (the CSS shows it when the form has
+// the "has-text" class). Clearing keeps the cursor in the box, ready for a
+// new search; it doesn't search or reload anything. Escape clears too.
+export function addClearButton(form) {
+  const input = form.querySelector("input[name='q']");
+
+  const clear = document.createElement("button");
+  clear.type = "button"; // "button", so clicking it never submits the form
+  clear.className = "search-clear";
+  clear.setAttribute("aria-label", "Clear search");
+  clear.title = "Clear";
+  // A fixed, data-free icon, so innerHTML is safe here.
+  clear.innerHTML =
+    '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
+    '<path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+  form.append(clear);
+
+  const showOrHide = () => form.classList.toggle("has-text", input.value !== "");
+
+  const clearText = () => {
+    input.value = "";
+    showOrHide();
+    input.focus();
+  };
+
+  clear.addEventListener("click", clearText);
+  input.addEventListener("input", showOrHide);
+  input.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && input.value !== "") {
+      event.preventDefault();
+      clearText();
+    }
+  });
+  // When the visitor comes back with the browser's back button, the box
+  // may be refilled from before; check again so the × matches.
+  window.addEventListener("pageshow", showOrHide);
+
+  showOrHide();
+}
+
 // preventEmptySearch stops a search form from submitting when the box only
 // contains spaces (the API would answer "query must not be empty"), and
 // trims spaces off the ends of the query before it's sent.

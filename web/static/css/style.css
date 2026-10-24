@@ -187,13 +187,12 @@ body {
   outline-offset: 3px;
 }
 
-/* Underline variant of the search (home and results pages): a single
-   grey line, like writing on paper, with a small return arrow on the
-   right. A lighter grey part at the left stretches across the full width
-   while you type. */
+/* Underline variant of the search (home and results pages): a single,
+   steady grey line, like writing on paper, with a small magnifying-glass
+   button on the right. */
 .search--line .search-input {
   height: 40px;
-  padding: 0 40px 0 0;
+  padding: 0 64px 0 0; /* room on the right for the × and the magnifying glass */
   font-size: 0.875rem;
   background: transparent;
   border: 0;
@@ -204,29 +203,6 @@ body {
 .search--line .search-input:focus {
   background: transparent;
   box-shadow: none;
-}
-
-.search--line::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 1px;
-  background-color: var(--text-muted); /* grey */
-  /* Lighter at the left, fading out to the right. */
-  -webkit-mask-image: linear-gradient(90deg, #000, transparent 85%);
-  mask-image: linear-gradient(90deg, #000, transparent 85%);
-  opacity: 0.6;
-  transform: scaleX(0.4);
-  transform-origin: left;
-  transition: transform 0.7s var(--ease), opacity 0.4s;
-  pointer-events: none;
-}
-
-.search--line:focus-within::after {
-  transform: scaleX(1);
-  opacity: 1;
 }
 
 .search--line .search-button {
@@ -257,6 +233,48 @@ body {
 .search--small .search-button {
   width: 28px;
   height: 28px;
+}
+
+/* The "×" that clears the search box (added by common.js). It sits just
+   left of the magnifying glass and only shows while there's text in the
+   box ("has-text"). Like the other icons: grey, white on hover, no backing. */
+.search-clear {
+  position: absolute;
+  top: 50%;
+  right: 32px; /* just left of the magnifying glass */
+  display: none;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px; /* only shows in the keyboard focus outline */
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transform: translateY(-50%);
+  transition: color 0.2s;
+}
+
+.search.has-text .search-clear {
+  display: grid;
+}
+
+.search-clear:hover {
+  color: #fff;
+}
+
+.search-clear:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.search--small .search-clear {
+  right: 28px;
+}
+
+.search--small .search-input {
+  padding-right: 56px;
 }
 
 /* =============================================================
@@ -966,8 +984,7 @@ body {
 
   .showcase,
   .showcase-tile img,
-  .showcase-glow,
-  .search--line::after {
+  .showcase-glow {
     transition: none;
   }
 }
