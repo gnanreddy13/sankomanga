@@ -289,7 +289,7 @@ func TestShowcase(t *testing.T) {
 			{
 				ID:         105778,
 				Title:      anilistTitle{Romaji: ptr("Chainsaw Man")},
-				CoverImage: anilistCoverImage{Large: ptr("https://example.com/medium/csm.jpg"), Color: ptr("#f1c90d")},
+				CoverImage: anilistCoverImage{ExtraLarge: ptr("https://example.com/large/csm.jpg"), Color: ptr("#f1c90d")},
 			},
 			{
 				// No cover image: skipped, since the showcase only shows covers.
@@ -299,7 +299,7 @@ func TestShowcase(t *testing.T) {
 			{
 				ID:         74347,
 				Title:      anilistTitle{Romaji: ptr("One Punch-Man")},
-				CoverImage: anilistCoverImage{Large: ptr("https://example.com/medium/opm.jpg")},
+				CoverImage: anilistCoverImage{ExtraLarge: ptr("https://example.com/large/opm.jpg")},
 			},
 		},
 	}
@@ -307,8 +307,8 @@ func TestShowcase(t *testing.T) {
 	rec := serve(source, http.MethodGet, "/api/showcase")
 
 	assertJSON(t, rec, http.StatusOK, `{"covers": [
-		{"id": 105778, "title": "Chainsaw Man", "coverUrl": "https://example.com/medium/csm.jpg", "coverColor": "#f1c90d"},
-		{"id": 74347, "title": "One Punch-Man", "coverUrl": "https://example.com/medium/opm.jpg", "coverColor": null}
+		{"id": 105778, "title": "Chainsaw Man", "coverUrl": "https://example.com/large/csm.jpg", "coverColor": "#f1c90d"},
+		{"id": 74347, "title": "One Punch-Man", "coverUrl": "https://example.com/large/opm.jpg", "coverColor": null}
 	]}`)
 	if got := rec.Header().Get("Cache-Control"); got != "public, max-age=3600" {
 		t.Errorf("Cache-Control = %q, want public, max-age=3600", got)

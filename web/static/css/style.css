@@ -286,41 +286,44 @@ body {
 
 /* =============================================================
    Home page
+   Two halves: the name and tagline centred in the upper part, and
+   a fan of popular covers rising from the bottom edge, like a hand
+   of manga volumes. The same on every screen size; phones get a
+   smaller fan of 5 covers instead of 7.
    ============================================================= */
-/* The home page uses the same stacked layout on every screen size: the
-   covers on top, then the name, tagline and search, all centred. */
 .home {
+  /* The width of one cover in the fan, from which the whole fan is
+     sized: about 325px on a laptop, at most 42% of the screen height. */
+  --card-w: min(42vh, 28vw);
+  /* How much of the screen's height the name and tagline are centred in. */
+  --intro-zone: 50%;
+
   flex: 1;
-  display: grid;
-  place-items: center; /* centres the content both ways */
-  padding: 24px 16px 8px;
-  /* Never let anything cause sideways scrolling. */
-  overflow-x: clip;
-}
-
-.hero {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 32px;
-}
-
-/* Below the covers: name, tagline and search, centred. */
-.home-intro {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 20px; /* space between the tagline and the search hint */
-  text-align: center;
-  /* A fixed width (not a percentage: the layout around it sizes itself to
-     its content, so "100%" would just shrink to fit the text). */
-  width: 280px;
-  max-width: 100%;
-  min-width: 0; /* lets long text wrap instead of stretching the layout */
-  /* Always drawn above the covers' glow. */
   position: relative;
-  z-index: 1;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow: hidden; /* the fan's lower part and outer cards go past the edges */
+  /* Keep the cards' stacking order (which card lies on top) inside the
+     home page, so the footer and the search overlay always draw above
+     the whole fan. */
+  isolation: isolate;
+}
+
+/* Upper part: name, tagline and the search hint, centred. */
+.home-intro {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  z-index: 10; /* above every card of the fan */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px; /* space between the tagline and the search hint */
+  width: min(320px, calc(100% - 32px));
+  height: var(--intro-zone);
+  text-align: center;
+  transform: translateX(-50%);
 }
 
 .brand-name {
@@ -339,7 +342,8 @@ body {
   color: var(--text-muted);
 }
 
-/* Gentle entrance: name and search rise and fade in, one after the other. */
+/* Gentle entrance: name and hint rise and fade in, one after the other.
+   (rise-in is also used by the search overlay.) */
 .home-intro > * {
   animation: rise-in 0.9s var(--ease) both;
 }
@@ -360,127 +364,127 @@ body {
 }
 
 /* =============================================================
-   Home page: drifting cover columns
+   Home page: the fan of covers
    ============================================================= */
 
-/* The window the covers drift in: tall and narrow (3:5), about
-   200 × 333px, with no box around it. */
-.showcase-window {
-  position: relative;
-  flex: none;
-  width: min(54vw, 200px);
-  aspect-ratio: 3 / 5;
-}
-
-/* A soft glow behind the covers, slowly cycling through their colours
-   (home.js sets --live-color). */
-.showcase-glow {
-  position: absolute;
-  inset: 18% 12%;
-  border-radius: 50%;
-  background-color: var(--live-color, var(--accent));
-  filter: blur(80px);
-  opacity: 0;
-  transition: background-color 2s ease, opacity 1.5s var(--ease);
-}
-
-.showcase-glow.is-on {
-  opacity: 0.14;
-}
-
-.showcase {
+/* Covers the whole home page; the cards are anchored to its bottom middle.
+   Clicks pass straight through (they open the search). */
+.fan {
   position: absolute;
   inset: 0;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  overflow: hidden;
-  /* A short, subtle fade at the top and bottom, so covers emerge from and
-     melt back into the black without a hard edge. The extra 60% step in
-     the middle of each fade keeps such a short fade smooth. The left and
-     right sides stay crisp. */
-  -webkit-mask-image: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.6) 5%, #000 11%, #000 89%, rgba(0, 0, 0, 0.6) 95%, transparent);
-  mask-image: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.6) 5%, #000 11%, #000 89%, rgba(0, 0, 0, 0.6) 95%, transparent);
-  /* Hidden until home.js has built the columns, then faded in. */
-  opacity: 0;
-  transition: opacity 1.6s var(--ease);
+  pointer-events: none;
+  opacity: 0; /* faded in by home.js once the covers are ready */
+  transition: opacity 1.2s var(--ease);
 }
 
-.showcase.is-ready,
-.showcase.is-fallback {
+.fan.is-ready {
   opacity: 1;
 }
 
-/* If the covers can't be loaded: a soft, quiet gradient instead. */
-.showcase.is-fallback {
-  background:
-    radial-gradient(circle at 35% 30%, rgba(233, 229, 220, 0.06), transparent 55%),
-    radial-gradient(circle at 65% 75%, rgba(130, 130, 160, 0.08), transparent 55%);
+/* A soft glow behind the fan, in the colour of the cover that most
+   recently slid in (home.js sets --live-color). */
+.fan-glow {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: calc(var(--card-w) * 3);
+  height: calc(var(--card-w) * 1.6);
+  border-radius: 50%;
+  background-color: var(--live-color, var(--accent));
+  filter: blur(90px);
+  opacity: 0;
+  transform: translate(-50%, 30%);
+  transition: background-color 2s ease, opacity 1.5s var(--ease);
 }
 
-.showcase-column {
-  min-width: 0;
+.fan-glow.is-on {
+  opacity: 0.16;
 }
 
-/* Each track holds its covers twice and slides by half its height, then
-   repeats: see buildColumns in home.js. Each column has its own speed and
-   starting point, and the middle one drifts the other way, so the motion
-   never looks mechanical. */
-.showcase-track {
-  animation: drift-up var(--duration, 64s) linear infinite;
-  animation-delay: var(--delay, 0s);
-  will-change: transform; /* hint: let the graphics card do the moving */
+/* The point all cards are arranged around: the bottom middle. As the fan
+   fades in, the cards also rise a little into place. */
+.fan-cards {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateY(40px);
+  transition: transform 1.4s var(--ease);
 }
 
-.showcase-column:nth-child(2) .showcase-track {
-  animation-name: drift-down;
-  --duration: 80s;
-  --delay: -14s;
+.fan.is-ready .fan-cards {
+  transform: none;
 }
 
-.showcase-column:nth-child(3) .showcase-track {
-  --duration: 72s;
-  --delay: -36s;
+/* One card. Each is tilted to its place in the fan (--angle, set by
+   home.js) around a point well below the screen, like cards held in a
+   hand; about the top 80% of the middle card is visible. */
+.fan-card {
+  position: absolute;
+  left: calc(var(--card-w) / -2);
+  bottom: calc(var(--card-w) * -0.29); /* hides the bottom ~20% of the card */
+  width: var(--card-w);
+  aspect-ratio: 7 / 10; /* AniList covers are roughly this shape */
+  transform-origin: 50% 260%;
+  transform: rotate(var(--angle));
+  /* The fan slowly "breathes": spreads a little and closes again. */
+  animation: fan-breathe 8s ease-in-out infinite alternate;
 }
 
-.showcase.is-paused .showcase-track {
+@keyframes fan-breathe {
+  from { transform: rotate(calc(var(--angle) * 0.93)); }
+  to   { transform: rotate(calc(var(--angle) * 1.06)); }
+}
+
+.fan.is-paused .fan-card {
   animation-play-state: paused;
 }
 
-@keyframes drift-up {
-  from { transform: translateY(0); }
-  to   { transform: translateY(-50%); }
-}
-
-@keyframes drift-down {
-  from { transform: translateY(-50%); }
-  to   { transform: translateY(0); }
-}
-
-.showcase-tile {
-  /* margin (not gap) between tiles, so both copies in a track are exactly
-     the same height and the loop has no seam */
-  margin-bottom: 10px;
-  aspect-ratio: 7 / 10; /* AniList covers are roughly this shape */
+/* The card's face: the part that slides out and back in when its cover
+   is swapped. Shows the cover's own colour (dimmed) until the image has
+   loaded and faded in. */
+.fan-card-face {
+  width: 100%;
+  height: 100%;
   overflow: hidden;
-  border-radius: 6px;
-  /* Placeholder while the image loads: the cover's own colour, dimmed so
-     bright colours don't flash on the black page. */
-  background-color: color-mix(in srgb, var(--tile-color, #2a2a30) 25%, #0b0b0d);
-  box-shadow: 0 14px 30px -14px rgba(0, 0, 0, 0.9);
+  border-radius: 10px;
+  background-color: color-mix(in srgb, var(--card-color, #2a2a30) 25%, #0b0b0d);
+  box-shadow:
+    0 -12px 40px -12px rgba(0, 0, 0, 0.9),
+    0 0 0 1px rgba(255, 255, 255, 0.05);
 }
 
-.showcase-tile img {
+.fan-card-face img {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
   opacity: 0;
-  transition: opacity 1s var(--ease);
+  transition: opacity 0.8s var(--ease);
 }
 
-.showcase-tile img.is-loaded {
+.fan-card-face img.is-loaded {
   opacity: 1;
+}
+
+/* The footer sits over the bottom of the fan, on a dark fade so the
+   AniList credit always stays readable. */
+.home ~ .site-footer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 3;
+  padding-top: 56px;
+  background: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.85) 55%);
+}
+
+/* Phones: a bigger share of the narrow screen for each cover, so the fan
+   reaches up to about 60% of the height, as on wider screens. */
+@media (max-width: 720px) {
+  .home {
+    --card-w: min(48vh, 76vw);
+    --intro-zone: 50%;
+  }
 }
 
 /* =============================================================
@@ -1146,19 +1150,19 @@ body.search-open {
 
 /* =============================================================
    Reduced motion
-   People who turn on "reduce motion" on their device get still
-   covers and no entrance animation (home.js also keeps the colour
-   from changing).
+   People who turn on "reduce motion" on their device get a still
+   fan and no entrance animation (home.js also doesn't swap covers).
    ============================================================= */
 @media (prefers-reduced-motion: reduce) {
-  .showcase-track,
+  .fan-card,
   .home-intro > * {
     animation: none;
   }
 
-  .showcase,
-  .showcase-tile img,
-  .showcase-glow {
+  .fan,
+  .fan-cards,
+  .fan-card-face img,
+  .fan-glow {
     transition: none;
   }
 

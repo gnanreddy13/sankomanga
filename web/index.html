@@ -27,37 +27,30 @@
 </head>
 <body>
   <main class="home">
-    <div class="hero">
 
-      <!-- Left: a window of popular covers drifting up and down in three
-           columns, filled in by home.js. aria-hidden hides it from screen
-           readers, since it's only decoration. -->
-      <div class="showcase-window" aria-hidden="true">
-        <div class="showcase-glow"></div>
-        <div class="showcase">
-          <div class="showcase-column"><div class="showcase-track"></div></div>
-          <div class="showcase-column"><div class="showcase-track"></div></div>
-          <div class="showcase-column"><div class="showcase-track"></div></div>
-        </div>
+    <!-- Upper part: name and tagline, then a quiet hint instead of a
+         search bar. The search box opens on top of the page (see
+         .search-overlay below and search-overlay.js). -->
+    <div class="home-intro">
+      <div class="brand">
+        <h1 class="brand-name" data-app-name></h1>
+        <p class="brand-tagline" data-tagline></p>
       </div>
 
-      <!-- Below the covers: name and tagline, then a quiet hint instead of
-           a search bar. The search box opens on top of the page (see
-           .search-overlay below and home.js). -->
-      <div class="home-intro">
-        <div class="brand">
-          <h1 class="brand-name" data-app-name></h1>
-          <p class="brand-tagline" data-tagline></p>
-        </div>
+      <!-- A real button, so keyboard and screen-reader users can open the
+           search too. The CSS shows the wording that fits the device. -->
+      <button class="search-hint" type="button" aria-haspopup="dialog">
+        <span class="search-hint--keys">Type to search</span>
+        <span class="search-hint--touch">Tap anywhere to search</span>
+      </button>
+    </div>
 
-        <!-- A real button, so keyboard and screen-reader users can open the
-             search too. The CSS shows the wording that fits the device. -->
-        <button class="search-hint" type="button" aria-haspopup="dialog">
-          <span class="search-hint--keys">Type to search</span>
-          <span class="search-hint--touch">Tap anywhere to search</span>
-        </button>
-      </div>
-
+    <!-- Lower part: a fan of popular covers rising from the bottom edge,
+         like a hand of manga volumes. home.js deals the cards. aria-hidden
+         hides it from screen readers, since it's only decoration. -->
+    <div class="fan" aria-hidden="true">
+      <div class="fan-glow"></div>
+      <div class="fan-cards"></div>
     </div>
   </main>
 

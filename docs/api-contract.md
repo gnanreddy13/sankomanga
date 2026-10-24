@@ -174,7 +174,7 @@ screen design.
     {
       "id": 105778,
       "title": "Chainsaw Man",
-      "coverUrl": "https://s4.anilist.co/file/anilistcdn/media/manga/cover/medium/....jpg",
+      "coverUrl": "https://s4.anilist.co/file/anilistcdn/media/manga/cover/large/....jpg",
       "coverColor": "#f1c90d"
     }
   ]
@@ -185,7 +185,7 @@ screen design.
 |---|---|---|---|
 | `id` | int | no | `id` (unused today; keeps clickable covers possible) |
 | `title` | string | no | See [Title rules](#title-rules) (unused today) |
-| `coverUrl` | string | no | `coverImage.large`. Titles without a cover are left out. |
+| `coverUrl` | string | no | `coverImage.extraLarge` (the home page shows these covers large). Titles without a cover are left out. |
 | `coverColor` | string | yes | `coverImage.color`, placeholder while the image loads |
 
 - Up to 15 covers, most popular first. `covers` may be `[]`; the frontend
@@ -304,7 +304,7 @@ query ($perPage: Int) {
           isAdult: false, genre_not_in: ["Ecchi"], sort: [POPULARITY_DESC]) {
       id
       title { romaji english native }
-      coverImage { large color }
+      coverImage { extraLarge color }
     }
   }
 }

@@ -107,7 +107,7 @@ query ($perPage: Int) {
     media(` + mangaFilters + `, genre_not_in: ["Ecchi"], sort: [POPULARITY_DESC]) {
       id
       title { romaji english native }
-      coverImage { large color }
+      coverImage { extraLarge color }
     }
   }
 }`

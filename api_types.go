@@ -60,18 +60,20 @@ type showcaseCover struct {
 	CoverColor *string `json:"coverColor"`
 }
 
-// toShowcaseResponse builds the showcase response. Titles without a
-// cover image are skipped: a cover is the only thing the showcase shows.
+// toShowcaseResponse builds the showcase response. It uses the biggest
+// cover image (coverImage.extraLarge), because the home page shows the
+// covers large in its fan. Titles without a cover image are skipped: a
+// cover is the only thing the showcase shows.
 func toShowcaseResponse(popular []anilistMedia) showcaseResponse {
 	covers := make([]showcaseCover, 0, len(popular))
 	for _, m := range popular {
-		if m.CoverImage.Large == nil || *m.CoverImage.Large == "" {
+		if m.CoverImage.ExtraLarge == nil || *m.CoverImage.ExtraLarge == "" {
 			continue
 		}
 		covers = append(covers, showcaseCover{
 			ID:         m.ID,
 			Title:      displayTitle(m.Title),
-			CoverURL:   *m.CoverImage.Large,
+			CoverURL:   *m.CoverImage.ExtraLarge,
 			CoverColor: m.CoverImage.Color,
 		})
 	}
