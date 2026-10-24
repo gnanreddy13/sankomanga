@@ -15,17 +15,18 @@ not rules: the design can change at any time.
 
 ## Home screen
 
-No box: the content sits directly on the page, centred.
+No box: the content sits directly on the page, centred. The same stacked
+layout on every screen size (desktop looks like phones): covers on top, then
+the name, tagline and search, all centred.
 
 | Part | Decision |
 |---|---|
 | Background | Pure black (`#000`). |
 | Size | Everything kept small and quiet. |
-| Left | A tall, narrow window (about 250–310px wide, as tall as the right side) of popular covers (from `/api/showcase`, ecchi excluded) drifting up and down in three columns, endlessly: each column at its own slow speed, the middle one the other way. No box: the window has a short, subtle fade into the black at the top and bottom (about 11% of its height; the sides stay crisp), and has a slight 3D tilt towards the text. A soft glow behind it slowly cycles through the covers' colours. Purely decorative: no hover or click. |
-| Right | Name and search grouped together in the vertical middle beside the covers. The app name and tagline, then the search below. (A short hairline rule under the tagline was tried and removed.) |
+| Covers (top) | A tall, narrow window (3:5, about 200 × 333px) of popular covers (from `/api/showcase`, ecchi excluded) drifting up and down in three columns, endlessly: each column at its own slow speed, the middle one the other way. No box: the window has a short, subtle fade into the black at the top and bottom (about 11% of its height; the sides stay crisp). A soft glow behind it slowly cycles through the covers' colours. Purely decorative: no hover or click. |
+| Below | 32px under the covers: the app name and tagline, then the search 28px below, all centred. (A short hairline rule under the tagline was tried and removed.) |
 | Tagline | Italic, muted grey. |
 | Search | Underline search, same style on both pages: a single, steady grey line (no animation), placeholder "Search…", with a small magnifying-glass button on the right (both pages). The button just turns white on hover (no backing). While there's text, a small × appears just left of it: it clears the box and keeps the cursor there (Escape does the same). Custom rather than the browser's own clear button, which looks different in every browser. Enter goes to `/search?q=...`. |
-| Phones | Stacked and centred: a band of drifting covers (no tilt), then name + tagline, then search |
 | Motion | With "reduce motion" on: still covers, one fixed colour, no entrance animation. Drifting pauses while the tab is hidden. |
 | Loading / failure | Search works immediately; covers fade in (each shows its own colour while loading); a soft gradient if they can't load |
 
@@ -38,6 +39,8 @@ Tried and dropped for the home page (kept here so we don't repeat them):
   but heavy, played only once, and the page backs never looked right
   (real interior pages would need rights we don't have).
 - A page counter ("01 / 15") above the name.
+- On desktop, the covers on the left (slightly tilted towards the text) with
+  the name and search beside them; now stacked like on phones everywhere.
 
 ## Results screen
 
