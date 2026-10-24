@@ -14,6 +14,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"sync"
 	"time"
 )
 
@@ -33,6 +34,25 @@ const (
 
 	// searchPageSize is how many results one search page returns.
 	searchPageSize = 20
+
+	// How many calls we allow ourselves to make to AniList. AniList allows
+	// 30 per minute right now (normally 90; their docs say the API is
+	// temporarily "degraded"), plus an unpublished burst limit. At most
+	// anilistBurst + anilistPerMinute = 25 calls can happen in any one
+	// minute, which leaves a safety margin below 30.
+	// When AniList is back to 90/min, these can go up to about 70 and 10.
+	anilistPerMinute = 20
+	anilistBurst     = 5
+
+	// anilistMaxWait is the longest a request waits for its turn to call
+	// AniList before we give up and answer 503. At 20 calls per minute a
+	// new turn frees up every 3 seconds, so 3s lets one request queue up.
+	anilistMaxWait = 3 * time.Second
+
+	// anilistDefaultPause is how long we stop calling AniList after a 429
+	// that doesn't say how long to wait. AniList's docs describe a
+	// 1-minute timeout.
+	anilistDefaultPause = time.Minute
 )
 
 // mangaFilters is added to every AniList query, so search and detail can
@@ -92,16 +112,22 @@ var (
 	errUpstreamBad = errors.New("anilist: bad response")
 )
 
-// rateLimitedError is returned when AniList answers 429 Too Many Requests.
-// It carries how long AniList asked us to wait. Its Unwrap method makes
-// errors.Is(err, errUpstreamUnavailable) true, so handlers that don't care
-// about the wait time can treat it like any other "unavailable" error.
+// rateLimitedError means we can't call AniList right now: either AniList
+// answered 429 Too Many Requests, or our own limiter (anilistLimiter)
+// stopped the call before it was sent. It carries how long to wait.
+// Its Unwrap method makes errors.Is(err, errUpstreamUnavailable) true, so
+// handlers that don't care about the wait time can treat it like any
+// other "unavailable" error.
 type rateLimitedError struct {
-	RetryAfterSeconds int // 0 if AniList didn't say
+	RetryAfterSeconds int  // 0 if unknown
+	ByUs              bool // true: our own limiter; false: AniList said 429
 }
 
 func (e *rateLimitedError) Error() string {
-	return fmt.Sprintf("anilist: rate limited (retry after %ds)", e.RetryAfterSeconds)
+	if e.ByUs {
+		return fmt.Sprintf("anilist: holding back to stay under the rate limit (retry after %ds)", e.RetryAfterSeconds)
+	}
+	return fmt.Sprintf("anilist: rate limited by AniList (retry after %ds)", e.RetryAfterSeconds)
 }
 
 func (e *rateLimitedError) Unwrap() error {
@@ -157,6 +183,8 @@ type anilistClient struct {
 	// url is a field (not just the constant) so tests can point the
 	// client at a fake AniList server running on the test machine.
 	url string
+	// limiter makes sure we stay under AniList's rate limit.
+	limiter *anilistLimiter
 }
 
 // newAniListClient returns a client for the real AniList API.
@@ -164,6 +192,92 @@ func newAniListClient() *anilistClient {
 	return &anilistClient{
 		httpClient: &http.Client{Timeout: anilistTimeout},
 		url:        anilistURL,
+		limiter:    newAniListLimiter(),
+	}
+}
+
+// anilistLimiter decides when we may call AniList. It's shared by every
+// request, so a mutex guards it (like the cache in cache.go).
+//
+// It does two things:
+//  1. Spreads our calls out with a token bucket (ratelimit.go), so we
+//     never send more than AniList allows. A request whose turn is near
+//     waits for it; one whose turn is far off gets a 503 instead.
+//  2. After AniList answers 429, pauses ALL calls until AniList's
+//     Retry-After time has passed. AniList's docs say calls made during
+//     that timeout are refused too, so sending them would be wasted.
+type anilistLimiter struct {
+	mu          sync.Mutex
+	bucket      *tokenBucket
+	pausedUntil time.Time
+
+	// Replaceable in tests, so they control time instead of waiting.
+	now   func() time.Time
+	sleep func(ctx context.Context, d time.Duration) error
+}
+
+func newAniListLimiter() *anilistLimiter {
+	return &anilistLimiter{
+		bucket: newTokenBucket(anilistBurst, anilistPerMinute, time.Now()),
+		now:    time.Now,
+		sleep:  sleepContext,
+	}
+}
+
+// wait returns once it's our turn to call AniList. It returns a
+// *rateLimitedError instead if the turn is too far away (or AniList told
+// us to pause), and an "unavailable" error if the visitor gives up
+// (disconnects) while waiting.
+func (l *anilistLimiter) wait(ctx context.Context) error {
+	l.mu.Lock()
+	now := l.now()
+
+	if now.Before(l.pausedUntil) {
+		remaining := l.pausedUntil.Sub(now)
+		l.mu.Unlock()
+		return &rateLimitedError{RetryAfterSeconds: retryAfterSeconds(remaining), ByUs: true}
+	}
+
+	wait, ok := l.bucket.reserve(now, anilistMaxWait)
+	l.mu.Unlock() // unlock before sleeping, so other requests aren't blocked
+
+	if !ok {
+		return &rateLimitedError{RetryAfterSeconds: retryAfterSeconds(wait), ByUs: true}
+	}
+	if wait > 0 {
+		if err := l.sleep(ctx, wait); err != nil {
+			return fmt.Errorf("%w: gave up waiting for our turn: %w", errUpstreamUnavailable, err)
+		}
+	}
+	return nil
+}
+
+// pause stops all AniList calls for the given number of seconds (or
+// anilistDefaultPause if AniList didn't say). It never shortens an
+// existing pause.
+func (l *anilistLimiter) pause(seconds int) {
+	duration := anilistDefaultPause
+	if seconds > 0 {
+		duration = time.Duration(seconds) * time.Second
+	}
+
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	if until := l.now().Add(duration); until.After(l.pausedUntil) {
+		l.pausedUntil = until
+	}
+}
+
+// sleepContext waits for d, but stops early (returning an error) if ctx is
+// cancelled, e.g. because the visitor closed the page.
+func sleepContext(ctx context.Context, d time.Duration) error {
+	timer := time.NewTimer(d)
+	defer timer.Stop()
+	select {
+	case <-timer.C:
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
 	}
 }
 
@@ -234,6 +348,11 @@ type graphqlResponse struct {
 // the answer into data. Every failure comes back as one of the errors
 // defined above, so callers never have to inspect HTTP details.
 func (c *anilistClient) query(ctx context.Context, query string, variables map[string]any, data any) error {
+	// Wait for our turn, so we stay under AniList's rate limit.
+	if err := c.limiter.wait(ctx); err != nil {
+		return err
+	}
+
 	reqBody, err := json.Marshal(graphqlRequest{Query: query, Variables: variables})
 	if err != nil {
 		return fmt.Errorf("encoding anilist request: %w", err)
@@ -263,6 +382,12 @@ func (c *anilistClient) query(ctx context.Context, query string, variables map[s
 	}
 
 	if err := checkAniListStatus(resp); err != nil {
+		// If AniList says we've sent too many requests, stop all calls
+		// until it says we may continue.
+		var rateErr *rateLimitedError
+		if errors.As(err, &rateErr) {
+			c.limiter.pause(rateErr.RetryAfterSeconds)
+		}
 		return err
 	}
 

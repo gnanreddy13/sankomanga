@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -271,5 +272,138 @@ func TestParseRetryAfter(t *testing.T) {
 		if got := parseRetryAfter(header); got != want {
 			t.Errorf("parseRetryAfter(%q) = %d, want %d", header, got, want)
 		}
+	}
+}
+
+// newTestLimiter returns a limiter with a fake clock. Its sleep doesn't
+// really wait: it records the wait and, if advanceOnSleep is true, moves
+// the clock forward by it (as if the request had waited its turn).
+func newTestLimiter(advanceOnSleep bool) (*anilistLimiter, *fakeClock, *[]time.Duration) {
+	clock := newFakeClock()
+	var sleeps []time.Duration
+
+	limiter := newAniListLimiter()
+	limiter.bucket = newTokenBucket(anilistBurst, anilistPerMinute, clock.now())
+	limiter.now = clock.now
+	limiter.sleep = func(ctx context.Context, d time.Duration) error {
+		sleeps = append(sleeps, d)
+		if advanceOnSleep {
+			clock.advance(d)
+		}
+		return nil
+	}
+	return limiter, clock, &sleeps
+}
+
+func TestLimiterBurstThenSpacesCalls(t *testing.T) {
+	limiter, _, sleeps := newTestLimiter(true)
+
+	for i := range anilistBurst + 3 {
+		if err := limiter.wait(context.Background()); err != nil {
+			t.Fatalf("call %d: unexpected error %v", i+1, err)
+		}
+	}
+
+	// The first 5 go straight through; each one after that waits ~3s.
+	if len(*sleeps) != 3 {
+		t.Fatalf("slept %d times, want 3 (after the burst of %d)", len(*sleeps), anilistBurst)
+	}
+	for _, d := range *sleeps {
+		assertAbout(t, d, 3*time.Second)
+	}
+}
+
+func TestLimiterRefusesWhenTurnIsTooFarAway(t *testing.T) {
+	// Clock doesn't move: this is like many requests arriving at once.
+	limiter, _, _ := newTestLimiter(false)
+
+	for range anilistBurst {
+		limiter.wait(context.Background())
+	}
+	// 6th: next turn is 3s away, within anilistMaxWait, so it waits.
+	if err := limiter.wait(context.Background()); err != nil {
+		t.Fatalf("6th call: %v, want it to wait its turn", err)
+	}
+	// 7th: its turn would be 6s away, too long: refused with Retry-After.
+	err := limiter.wait(context.Background())
+
+	var rateErr *rateLimitedError
+	if !errors.As(err, &rateErr) || !rateErr.ByUs || rateErr.RetryAfterSeconds != 6 {
+		t.Fatalf("error = %v, want our own rate limit with retry after 6s", err)
+	}
+	if !errors.Is(err, errUpstreamUnavailable) {
+		t.Errorf("should count as 'unavailable' so the handler answers 503")
+	}
+}
+
+func TestLimiterPause(t *testing.T) {
+	limiter, clock, _ := newTestLimiter(false)
+
+	limiter.pause(30)
+	limiter.pause(10) // a shorter pause must not cut the longer one short
+
+	clock.advance(29 * time.Second)
+	var rateErr *rateLimitedError
+	if err := limiter.wait(context.Background()); !errors.As(err, &rateErr) || rateErr.RetryAfterSeconds != 1 {
+		t.Fatalf("during pause: error = %v, want rate limited with 1s left", err)
+	}
+
+	clock.advance(1 * time.Second)
+	if err := limiter.wait(context.Background()); err != nil {
+		t.Errorf("after pause: %v, want nil", err)
+	}
+}
+
+func TestLimiterPauseWithoutRetryAfter(t *testing.T) {
+	limiter, clock, _ := newTestLimiter(false)
+
+	limiter.pause(0) // AniList didn't say how long: pause the default minute
+
+	clock.advance(anilistDefaultPause - time.Second)
+	if err := limiter.wait(context.Background()); err == nil {
+		t.Fatal("call allowed during the default pause")
+	}
+	clock.advance(time.Second)
+	if err := limiter.wait(context.Background()); err != nil {
+		t.Errorf("after default pause: %v, want nil", err)
+	}
+}
+
+func TestLimiterVisitorGivesUpWhileWaiting(t *testing.T) {
+	limiter, _, _ := newTestLimiter(false)
+	limiter.sleep = func(ctx context.Context, d time.Duration) error { return context.Canceled }
+
+	for range anilistBurst {
+		limiter.wait(context.Background())
+	}
+	err := limiter.wait(context.Background()) // has to sleep, and the sleep is cancelled
+
+	if !errors.Is(err, errUpstreamUnavailable) || !errors.Is(err, context.Canceled) {
+		t.Errorf("error = %v, want unavailable wrapping context.Canceled", err)
+	}
+}
+
+// TestClientPausesAfterAniList429 checks the whole client: after AniList
+// answers 429, the next call is stopped by us and never reaches AniList.
+func TestClientPausesAfterAniList429(t *testing.T) {
+	var calls atomic.Int32 // counts requests that reached the fake AniList
+	client := newFakeAniList(t, func(w http.ResponseWriter, r *http.Request) {
+		calls.Add(1)
+		w.Header().Set("Retry-After", "30")
+		w.WriteHeader(http.StatusTooManyRequests)
+	})
+
+	_, err := client.getManga(context.Background(), 1)
+	var rateErr *rateLimitedError
+	if !errors.As(err, &rateErr) || rateErr.ByUs {
+		t.Fatalf("first call: error = %v, want AniList's 429", err)
+	}
+
+	_, err = client.getManga(context.Background(), 2)
+	if !errors.As(err, &rateErr) || !rateErr.ByUs || rateErr.RetryAfterSeconds < 29 {
+		t.Fatalf("second call: error = %v, want our own pause with ~30s left", err)
+	}
+	if got := calls.Load(); got != 1 {
+		t.Errorf("fake AniList got %d calls, want 1 (the second must be held back)", got)
 	}
 }

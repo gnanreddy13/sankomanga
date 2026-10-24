@@ -160,7 +160,7 @@ func writeUpstreamError(w http.ResponseWriter, err error) {
 		writeError(w, http.StatusNotFound, "manga not found")
 
 	case errors.As(err, &rateErr):
-		slog.Warn("AniList rate limited us", "err", err)
+		slog.Warn("AniList rate limit", "err", err)
 		// Pass AniList's requested wait on to the visitor, if it gave one.
 		if rateErr.RetryAfterSeconds > 0 {
 			w.Header().Set("Retry-After", strconv.Itoa(rateErr.RetryAfterSeconds))
