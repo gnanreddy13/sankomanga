@@ -1,6 +1,6 @@
 // The home page: fills in the name and tagline, fills two rows of popular
-// covers (from /api/showcase) that glide slowly across the top and bottom
-// of the screen in opposite directions, and sets up the search box that
+// covers (from /api/showcase, a different half in each row) that glide
+// slowly across the top and bottom of the screen in opposite directions, and sets up the search box that
 // opens on top of the page (search-overlay.js).
 //
 // The gliding itself is CSS (.cover-track in style.css); this file only
@@ -36,11 +36,11 @@ async function loadRows() {
       throw new Error("showcase has no covers");
     }
 
-    // Both rows show the same covers, but the bottom one starts halfway
-    // through the list, so the same cover is never stacked above itself.
-    const half = Math.floor(covers.length / 2);
-    fillRow(topRow, covers);
-    fillRow(bottomRow, [...covers.slice(half), ...covers.slice(0, half)]);
+    // Each row gets its own half of the list, so every cover on the
+    // screen is different. (With a single cover, both rows share it.)
+    const half = Math.ceil(covers.length / 2);
+    fillRow(topRow, covers.slice(0, half));
+    fillRow(bottomRow, covers.slice(half).length > 0 ? covers.slice(half) : covers);
   } catch (error) {
     console.warn("Cover rows unavailable:", error);
   }
@@ -53,16 +53,20 @@ function fillRow(row, covers) {
   const track = row.querySelector(".cover-track");
 
   // One copy must be at least as wide as the screen, or a gap would show
-  // at the end of the loop. 15 covers are plenty on most screens; very
-  // wide ones repeat the list.
-  let oneCopy = covers;
-  const coverWidth = track.offsetHeight * 0.7 || 200; // covers are 7:10
-  while (oneCopy.length * coverWidth < window.innerWidth) {
-    oneCopy = [...oneCopy, ...covers];
+  // at the end of the loop. 15 covers are plenty on most screens (so no
+  // cover shows twice); only very wide screens repeat the list.
+  track.replaceChildren(...covers.map(createCover));
+  while (track.scrollWidth < window.innerWidth) {
+    track.append(...covers.map(createCover));
   }
+  const oneCopy = [...track.children];
 
-  const items = [...oneCopy, ...oneCopy].map(createCover);
-  track.replaceChildren(...items);
+  // The second copy: the same covers again (the browser downloads each
+  // image only once).
+  track.append(...oneCopy.map((item) => item.cloneNode(true)));
+  for (const image of track.querySelectorAll("img:not(.is-loaded)")) {
+    whenLoaded(image);
+  }
 
   // The same speed for both rows, whatever their length: the time to
   // slide one copy's width.
@@ -84,13 +88,21 @@ function createCover(cover) {
   const image = document.createElement("img");
   image.alt = ""; // decorative: nothing for screen readers to announce
   image.decoding = "async";
-  // Listen for "load" before setting src, so we can't miss the event
-  // when the image is already in the browser's cache.
-  image.addEventListener("load", () => image.classList.add("is-loaded"), { once: true });
   image.src = cover.coverUrl;
 
   item.append(image);
   return item;
+}
+
+// whenLoaded fades an image in once it has downloaded. It checks
+// "complete" too, in case the image was already in the browser's cache
+// and finished before we started listening.
+function whenLoaded(image) {
+  if (image.complete && image.naturalWidth > 0) {
+    image.classList.add("is-loaded");
+    return;
+  }
+  image.addEventListener("load", () => image.classList.add("is-loaded"), { once: true });
 }
 
 // pauseWhileHidden stops the gliding while the browser tab isn't visible,

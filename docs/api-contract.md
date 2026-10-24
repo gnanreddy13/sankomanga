@@ -188,7 +188,7 @@ screen design.
 | `coverUrl` | string | no | `coverImage.extraLarge` (the home page shows these covers large). Titles without a cover are left out. |
 | `coverColor` | string | yes | `coverImage.color`, placeholder while the image loads |
 
-- Up to 15 covers, most popular first. `covers` may be `[]`; the frontend
+- Up to 30 covers, most popular first. `covers` may be `[]`; the frontend
   then shows its fallback gradient.
 - Cached on the server for 6 hours; `Cache-Control: public, max-age=3600`.
 - Counts towards the per-IP limit like the other data endpoints.

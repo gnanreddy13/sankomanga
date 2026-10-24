@@ -112,8 +112,10 @@ query ($perPage: Int) {
   }
 }`
 
-// showcaseSize is how many covers the home page showcase gets.
-const showcaseSize = 15
+// showcaseSize is how many covers the home page showcase gets: enough for
+// two rows of 15 different covers each, so no cover appears twice on the
+// screen at once. Still a single request, cached for hours.
+const showcaseSize = 30
 
 // These errors describe what went wrong in a way the HTTP handlers can act
 // on, without knowing anything about AniList. Handlers check them with

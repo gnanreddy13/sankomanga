@@ -83,6 +83,14 @@ body {
   color: var(--text-faint);
 }
 
+/* On the home page the same credit sits in the middle, under the search
+   hint, instead of in a footer. Same look, no footer padding. */
+.home-credit {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--text-faint);
+}
+
 .site-footer a {
   color: var(--text-muted);
   text-decoration: none;
@@ -98,7 +106,7 @@ body {
 /* The AniList logo after "Data from": no underline, sitting level with
    the text, slightly dimmed until you hover it. Its colours are AniList's
    own and are never changed. */
-.site-footer .footer-logo-link {
+.footer-logo-link {
   display: inline-flex;
   margin-left: 2px;
   vertical-align: middle;
@@ -108,11 +116,11 @@ body {
   transition: opacity 0.2s;
 }
 
-.site-footer .footer-logo-link:hover {
+.footer-logo-link:hover {
   opacity: 1;
 }
 
-.site-footer .footer-logo-link:focus-visible {
+.footer-logo-link:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
@@ -304,7 +312,7 @@ body {
   flex-direction: column;
   justify-content: space-between;
   gap: 24px;
-  padding-top: 16px;
+  padding: 16px 0; /* the same small margin above the top row and below the bottom one */
   overflow: hidden; /* the rows run past both edges of the screen */
 }
 
@@ -365,6 +373,10 @@ body {
    ends fade softly into the black, so covers glide in and out of view
    instead of being cut off by the screen edge. */
 .cover-row {
+  /* Room above and below the covers for their glow (the negative margin
+     keeps the room from pushing the layout around). */
+  padding: 36px 0;
+  margin: -36px 0;
   pointer-events: none;
   opacity: 0; /* faded in by home.js once the covers are ready */
   transition: opacity 1.2s var(--ease);
@@ -413,7 +425,10 @@ body {
   overflow: hidden;
   border-radius: 8px;
   background-color: color-mix(in srgb, var(--card-color, #2a2a30) 25%, #0b0b0d);
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.05),
+    /* A soft glow in the cover's own colour, spilling into the black. */
+    0 0 40px -6px color-mix(in srgb, var(--card-color, #2a2a30) 55%, transparent);
 }
 
 .row-cover img {
@@ -1055,7 +1070,7 @@ body.search-open {
    ============================================================= */
 @media (pointer: coarse) {
   .icon-link,
-  .site-footer .footer-logo-link {
+  .footer-logo-link {
     position: relative; /* so their tap area is placed around them */
   }
 

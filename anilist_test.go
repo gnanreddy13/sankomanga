@@ -432,8 +432,8 @@ func TestPopularMangaSuccess(t *testing.T) {
 			t.Errorf("query is missing %s:\n%s", want, sent.Body.Query)
 		}
 	}
-	if sent.Body.Variables["perPage"] != 15.0 {
-		t.Errorf("perPage = %v, want 15", sent.Body.Variables["perPage"])
+	if sent.Body.Variables["perPage"] != 30.0 {
+		t.Errorf("perPage = %v, want 30", sent.Body.Variables["perPage"])
 	}
 
 	if len(popular) != 2 || popular[0].ID != 105778 || *popular[1].CoverImage.ExtraLarge != "https://example.com/large/jjk.jpg" {
