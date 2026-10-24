@@ -16,23 +16,23 @@ not rules: the design can change at any time.
 ## Home screen
 
 No box: the content sits directly on the page. The same layout on every
-screen size: the name, tagline and search hint centred in the upper half, and
-a fan of popular covers rising from the bottom edge, like a hand of manga
-volumes.
+screen size: a row of popular covers along the top, the name, tagline and
+search hint centred in the middle, and another row of covers along the
+bottom.
 
 | Part | Decision |
 |---|---|
 | Background | Pure black (`#000`). |
 | Small text | The faintest grey is `#77777f` (4.7:1 contrast on black, above the 4.5:1 small text needs). Never darker. |
 | Size | Everything kept small and quiet. |
-| Name (top half) | The app name and tagline, then a quiet hint 20px below, centred in the upper half of the screen. No search bar on the page. (A short hairline rule under the tagline was tried and removed.) |
-| Covers (bottom) | A fan of popular covers (from `/api/showcase`, ecchi excluded, extra-large images so they stay sharp): 7 on wider screens, 5 on phones, the middle one on top. About 80% of each cover shows; the bottom slips below the screen edge. The middle cover reaches up to about 54–60% of the screen height. The fan slowly "breathes" (spreads and closes a few degrees), and every 4 seconds one random cover slides down out of the fan and a different popular cover slides up in its place, so all 15 take turns. A soft glow behind the fan takes the colour of the newest cover. The footer sits on top of the covers over a dark fade. Purely decorative: no hover or click. |
+| Covers (top and bottom) | Two rows of the 15 popular covers (from `/api/showcase`, ecchi excluded, extra-large images so they stay sharp), both reusing the same covers; the bottom row starts halfway through the list so a cover never sits above itself. Each row glides endlessly and slowly (22px a second): the top one to the left, the bottom one to the right. Covers are about 280px tall on a laptop (at most 30% of the screen height), 200px on phones (at most 26%), with 14px gaps (10px on phones) and 8px rounded corners. Both ends of each row fade softly into the black. Purely decorative: no hover or click. |
+| Name (middle) | The app name and tagline, then a quiet hint 20px below, centred between the rows. No search bar on the page. (A short hairline rule under the tagline was tried and removed.) |
 | Tagline | Italic, muted grey. |
 | Search hint | Small faint text that's also a real button: "Type to search" on devices with a keyboard and mouse, "Tap anywhere to search" on touch screens. |
 | Search overlay | The search box opens on top of the page, which is dimmed and blurred. It opens by typing any letter (that letter starts the search), "/", clicking or tapping anywhere (except links), or the hint. It sits in the upper part of the screen (clear of phone keyboards), in a bigger version of the underline style. Closes with Esc (the first Esc clears any text), a click/tap outside, or the browser's back button/gesture (it adds one history step while open; searching replaces that step, so "back" from the results goes straight home). Tab stays inside the box while open. |
 | Search style | Underline search, same style in the home overlay and on the results page: a single, steady grey line (no animation), placeholder "Search…", with a small magnifying-glass button on the right (both pages). The line turns a lighter grey while the box is selected (so keyboard users can see where they are). The button just turns white on hover (no backing). While there's text, a small × appears just left of it: it clears the box and keeps the cursor there (Escape does the same). Custom rather than the browser's own clear button, which looks different in every browser. Enter goes to `/search?q=...`. |
-| Motion | With "reduce motion" on: a still fan, no swapping, one fixed colour, no entrance animation. Breathing and swapping pause while the tab is hidden. |
-| Loading / failure | Search (the overlay) works immediately; the fan rises into place once the list arrives, and each cover shows its own colour until its image loads. If the covers can't load, the lower half simply stays dark. |
+| Motion | With "reduce motion" on: still rows, no entrance animation. Gliding pauses while the tab is hidden. |
+| Loading / failure | Search (the overlay) works immediately; the rows fade in once the list arrives, and each cover shows its own colour until its image loads. If the covers can't load, the rows simply stay empty. |
 
 App name: placeholder `manga-app`. Tagline: "explore your next manga".
 Both live in one place each (`web/static/js/config.js`). Logo: not decided yet.
@@ -48,6 +48,9 @@ Tried and dropped for the home page (kept here so we don't repeat them):
 - A visible search bar on the home page (replaced by the hint and overlay).
 - Covers on top in a narrow window, drifting up and down in three columns,
   with the name below (replaced by the fan, which uses the whole width).
+- A fan of 7 covers rising from the bottom edge, breathing and swapping one
+  cover every 4 seconds, with a glow in the newest cover's colour (replaced
+  by the two gliding rows).
 
 ## Results screen
 

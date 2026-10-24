@@ -23,7 +23,7 @@ func TestWebRoutes(t *testing.T) {
 		{"title page with odd id", http.MethodGet, "/manga/abc", http.StatusOK, "text/html", "manga.js"},
 		{"title script", http.MethodGet, "/static/js/manga.js", http.StatusOK, "text/javascript", "renderTitle"},
 		{"stylesheet", http.MethodGet, "/static/css/style.css", http.StatusOK, "text/css", "--bg"},
-		{"home script", http.MethodGet, "/static/js/home.js", http.StatusOK, "text/javascript", "startSwapping"},
+		{"home script", http.MethodGet, "/static/js/home.js", http.StatusOK, "text/javascript", "fillRow"},
 		{"config script", http.MethodGet, "/static/js/config.js", http.StatusOK, "text/javascript", "APP_NAME"},
 		{"search overlay script", http.MethodGet, "/static/js/search-overlay.js", http.StatusOK, "text/javascript", "setUpSearchOverlay"},
 		{"no folder listings", http.MethodGet, "/static/js/", http.StatusNotFound, "", ""},

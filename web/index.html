@@ -28,8 +28,15 @@
 <body>
   <main class="home">
 
-    <!-- Upper part: name and tagline, then a quiet hint instead of a
-         search bar. The search box opens on top of the page (see
+    <!-- Top: a row of popular covers gliding slowly to the left. home.js
+         fills both rows. aria-hidden hides them from screen readers,
+         since they're only decoration. -->
+    <div class="cover-row cover-row--top" aria-hidden="true">
+      <div class="cover-track"></div>
+    </div>
+
+    <!-- Middle: name and tagline, then a quiet hint instead of a search
+         bar. The search box opens on top of the page (see
          .search-overlay below and search-overlay.js). -->
     <div class="home-intro">
       <div class="brand">
@@ -45,12 +52,9 @@
       </button>
     </div>
 
-    <!-- Lower part: a fan of popular covers rising from the bottom edge,
-         like a hand of manga volumes. home.js deals the cards. aria-hidden
-         hides it from screen readers, since it's only decoration. -->
-    <div class="fan" aria-hidden="true">
-      <div class="fan-glow"></div>
-      <div class="fan-cards"></div>
+    <!-- Bottom: the same covers, gliding the other way. -->
+    <div class="cover-row cover-row--bottom" aria-hidden="true">
+      <div class="cover-track"></div>
     </div>
   </main>
 

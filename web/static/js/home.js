@@ -1,41 +1,31 @@
-// The home page: fills in the name and tagline, deals a fan of popular
-// covers (from /api/showcase) rising from the bottom of the screen, and
-// sets up the search box that opens on top of the page
-// (search-overlay.js).
+// The home page: fills in the name and tagline, fills two rows of popular
+// covers (from /api/showcase) that glide slowly across the top and bottom
+// of the screen in opposite directions, and sets up the search box that
+// opens on top of the page (search-overlay.js).
 //
-// The fan stays alive in two calm ways: it slowly "breathes" (spreads and
-// closes a few degrees; that's CSS), and every few seconds one cover slides
-// down out of the fan and a different popular cover slides up in its place.
+// The gliding itself is CSS (.cover-track in style.css); this file only
+// builds the rows and sets their speed.
 
 import { fillBranding } from "./common.js";
 import { setUpSearchOverlay } from "./search-overlay.js";
 
-// How many covers are in the fan: fewer on narrow phone screens.
-const IS_NARROW = window.matchMedia("(max-width: 720px)").matches;
-const FAN_SIZE = IS_NARROW ? 5 : 7;
+// How fast the rows glide, in pixels per second: slow enough to read as
+// calm background movement rather than something to follow.
+const GLIDE_PX_PER_SECOND = 22;
 
-// The angle between neighbouring covers, in degrees.
-const FAN_STEP_DEG = IS_NARROW ? 11 : 9;
-
-// How often one cover is swapped for another, and how long it takes to
-// slide out (or back in).
-const SWAP_EVERY_MS = 4000;
-const SLIDE_MS = 700;
-
-const fan = document.querySelector(".fan");
-const cardsLayer = document.querySelector(".fan-cards");
-const glow = document.querySelector(".fan-glow");
-const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const home = document.querySelector(".home");
+const topRow = document.querySelector(".cover-row--top");
+const bottomRow = document.querySelector(".cover-row--bottom");
 
 fillBranding();
 setUpSearchOverlay();
-loadFan();
+loadRows();
 pauseWhileHidden();
 
-// loadFan fetches the covers and deals the fan. The search works the whole
-// time; the fan fades in once it's ready. If anything goes wrong, the lower
-// half simply stays dark (only decoration is missing).
-async function loadFan() {
+// loadRows fetches the covers and fills both rows. The search works the
+// whole time; the rows fade in once they're ready. If anything goes wrong,
+// the rows simply stay empty (only decoration is missing).
+async function loadRows() {
   try {
     const response = await fetch("/api/showcase");
     if (!response.ok) {
@@ -46,58 +36,49 @@ async function loadFan() {
       throw new Error("showcase has no covers");
     }
 
-    // The first few covers go into the fan; the rest wait their turn to
-    // be swapped in.
-    const inFan = covers.slice(0, FAN_SIZE);
-    const waiting = covers.slice(FAN_SIZE);
-
-    const slots = inFan.map((cover, index) => createCard(cover, index, inFan.length));
-    cardsLayer.append(...slots.map((slot) => slot.card));
-    fan.classList.add("is-ready");
-
-    // The glow starts in the colour of the middle cover.
-    setGlow(inFan[Math.floor(inFan.length / 2)].coverColor);
-
-    if (!reduceMotion && waiting.length > 0) {
-      startSwapping(slots, waiting);
-    }
+    // Both rows show the same covers, but the bottom one starts halfway
+    // through the list, so the same cover is never stacked above itself.
+    const half = Math.floor(covers.length / 2);
+    fillRow(topRow, covers);
+    fillRow(bottomRow, [...covers.slice(half), ...covers.slice(0, half)]);
   } catch (error) {
-    console.warn("Fan unavailable:", error);
+    console.warn("Cover rows unavailable:", error);
   }
 }
 
-// --- Building the fan -----------------------------------------------------
+// fillRow puts the covers into a row's strip, then a second identical
+// copy right after them. The CSS slides the strip by exactly one copy and
+// starts again, which looks like an endless row.
+function fillRow(row, covers) {
+  const track = row.querySelector(".cover-track");
 
-// createCard builds one card of the fan. The outer card is tilted to its
-// place in the fan (and "breathes", in the CSS); the inner face is the part
-// that slides out and back in when the cover is swapped.
-//
-// It returns the card, its face, and which cover it shows now.
-function createCard(cover, index, count) {
-  // How far from the middle this card is: e.g. -3 … 3 for 7 cards.
-  const offset = index - (count - 1) / 2;
+  // One copy must be at least as wide as the screen, or a gap would show
+  // at the end of the loop. 15 covers are plenty on most screens; very
+  // wide ones repeat the list.
+  let oneCopy = covers;
+  const coverWidth = track.offsetHeight * 0.7 || 200; // covers are 7:10
+  while (oneCopy.length * coverWidth < window.innerWidth) {
+    oneCopy = [...oneCopy, ...covers];
+  }
 
-  const card = document.createElement("div");
-  card.className = "fan-card";
-  card.style.setProperty("--angle", `${offset * FAN_STEP_DEG}deg`);
-  // The middle card lies on top, the outer ones underneath.
-  card.style.zIndex = String(Math.round(count - Math.abs(offset)));
+  const items = [...oneCopy, ...oneCopy].map(createCover);
+  track.replaceChildren(...items);
 
-  const face = document.createElement("div");
-  face.className = "fan-card-face";
-  showCover(face, cover);
+  // The same speed for both rows, whatever their length: the time to
+  // slide one copy's width.
+  const copyWidth = track.scrollWidth / 2;
+  track.style.setProperty("--row-duration", `${copyWidth / GLIDE_PX_PER_SECOND}s`);
 
-  card.append(face);
-  return { card, face, cover };
+  row.classList.add("is-ready");
 }
 
-// showCover puts a cover on a card's face. While the image downloads, the
-// face shows the cover's own colour (dimmed by the CSS); then it fades in.
-function showCover(face, cover) {
+// createCover builds one cover. While the image downloads, it shows the
+// cover's own colour (dimmed by the CSS); then the image fades in.
+function createCover(cover) {
+  const item = document.createElement("div");
+  item.className = "row-cover";
   if (cover.coverColor) {
-    face.style.setProperty("--card-color", cover.coverColor);
-  } else {
-    face.style.removeProperty("--card-color");
+    item.style.setProperty("--card-color", cover.coverColor);
   }
 
   const image = document.createElement("img");
@@ -108,92 +89,14 @@ function showCover(face, cover) {
   image.addEventListener("load", () => image.classList.add("is-loaded"), { once: true });
   image.src = cover.coverUrl;
 
-  face.replaceChildren(image);
+  item.append(image);
+  return item;
 }
 
-// --- Swapping covers ------------------------------------------------------
-
-// startSwapping slides one cover out of the fan and another in, every
-// SWAP_EVERY_MS. The covers take turns: the one leaving goes to the back
-// of the waiting line, so over time every popular cover appears.
-function startSwapping(slots, waiting) {
-  let busy = false;
-  let lastSlotIndex = -1;
-
-  setInterval(async () => {
-    if (busy || document.hidden) {
-      return; // don't overlap swaps, or swap while nobody's looking
-    }
-    busy = true;
-
-    // A random card, but never the same one twice in a row.
-    let slotIndex;
-    do {
-      slotIndex = Math.floor(Math.random() * slots.length);
-    } while (slotIndex === lastSlotIndex && slots.length > 1);
-    lastSlotIndex = slotIndex;
-
-    const slot = slots[slotIndex];
-    const next = waiting.shift();
-
-    // Download the next cover first, so it slides in fully drawn.
-    await preloadImage(next.coverUrl);
-
-    // Slide down out of the fan…
-    await slot.face.animate(
-      [
-        { transform: "translateY(0)", opacity: 1 },
-        { transform: "translateY(60%)", opacity: 0 },
-      ],
-      { duration: SLIDE_MS, easing: "cubic-bezier(0.55, 0, 0.75, 0.4)", fill: "forwards" },
-    ).finished;
-
-    // …swap the picture while it's out of sight…
-    waiting.push(slot.cover);
-    slot.cover = next;
-    showCover(slot.face, next);
-    setGlow(next.coverColor);
-
-    // …and slide back up into place.
-    await slot.face.animate(
-      [
-        { transform: "translateY(60%)", opacity: 0 },
-        { transform: "translateY(0)", opacity: 1 },
-      ],
-      { duration: SLIDE_MS, easing: "cubic-bezier(0.22, 1, 0.36, 1)", fill: "forwards" },
-    ).finished;
-
-    busy = false;
-  }, SWAP_EVERY_MS);
-}
-
-// preloadImage downloads an image and finishes when it's ready (or failed:
-// a broken cover just shows its colour, which is fine).
-function preloadImage(url) {
-  return new Promise((resolve) => {
-    const image = new Image();
-    image.onload = resolve;
-    image.onerror = resolve;
-    image.src = url;
-  });
-}
-
-// --- Colour and small helpers ---------------------------------------------
-
-// setGlow tints the soft glow behind the fan with a cover's colour, by
-// setting the --live-color CSS variable (the CSS fades between colours).
-function setGlow(color) {
-  if (color) {
-    document.documentElement.style.setProperty("--live-color", color);
-  }
-  glow.classList.add("is-on");
-}
-
-// pauseWhileHidden stops the breathing while the browser tab isn't
-// visible, so it doesn't use the visitor's battery for nothing. (Swaps
-// skip themselves while hidden.)
+// pauseWhileHidden stops the gliding while the browser tab isn't visible,
+// so it doesn't use the visitor's battery for nothing.
 function pauseWhileHidden() {
   document.addEventListener("visibilitychange", () => {
-    fan.classList.toggle("is-paused", document.hidden);
+    home.classList.toggle("is-paused", document.hidden);
   });
 }
