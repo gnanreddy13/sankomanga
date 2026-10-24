@@ -1,0 +1,10 @@
+# Compiled binary
+/manga-app
+
+# OS / editor clutter
+.DS_Store
+.idea/
+.vscode/
+
+# Local environment overrides
+.env
