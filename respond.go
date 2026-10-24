@@ -29,7 +29,24 @@ func writeJSON(w http.ResponseWriter, status int, v any) {
 	w.Write(body)
 }
 
+// Cache-Control header values. This header tells browsers (and any proxy
+// in between) whether, and for how long, they may reuse a response
+// without asking us again.
+const (
+	// cacheControlPublic: any cache may keep the answer for 5 minutes.
+	// Only for responses that are the same for every visitor. Future
+	// user-specific responses must use "private" or "no-store" instead.
+	cacheControlPublic = "public, max-age=300"
+
+	// cacheControlNoStore: never keep the answer. Used for errors (a
+	// "try again shortly" must not be replayed for 5 minutes) and for the
+	// health check (which must always reflect the server right now).
+	cacheControlNoStore = "no-store"
+)
+
 // writeError sends an error in the standard {"error": "..."} shape.
+// Errors are never cached by browsers or proxies.
 func writeError(w http.ResponseWriter, status int, message string) {
+	w.Header().Set("Cache-Control", cacheControlNoStore)
 	writeJSON(w, status, errorResponse{Error: message})
 }

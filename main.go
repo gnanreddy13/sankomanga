@@ -23,8 +23,9 @@ func main() {
 
 	addr := ":" + port()
 
-	// The handlers get their manga data from the real AniList client.
-	a := &app{source: newAniListClient()}
+	// The handlers get their manga data through the cache, which asks the
+	// real AniList client only when it doesn't already have the answer.
+	a := &app{source: newCachingSource(newAniListClient())}
 
 	// We build an http.Server ourselves instead of calling http.ListenAndServe
 	// directly, because the shortcut has no timeouts. Without them, a slow or

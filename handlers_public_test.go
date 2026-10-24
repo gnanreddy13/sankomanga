@@ -25,14 +25,20 @@ type fakeSource struct {
 	gotSearch string
 	gotPage   int
 	gotID     int
+
+	// How many times each method was called (used by the cache tests).
+	searchCalls int
+	getCalls    int
 }
 
 func (f *fakeSource) searchManga(ctx context.Context, search string, page int) (anilistSearchResult, error) {
+	f.searchCalls++
 	f.gotSearch, f.gotPage = search, page
 	return f.searchResult, f.err
 }
 
 func (f *fakeSource) getManga(ctx context.Context, id int) (anilistMedia, error) {
+	f.getCalls++
 	f.gotID = id
 	return f.media, f.err
 }
@@ -264,6 +270,32 @@ func TestMangaDetailInvalidID(t *testing.T) {
 			assertJSON(t, rec, http.StatusBadRequest, `{"error":"invalid id"}`)
 			if source.gotID != 0 {
 				t.Errorf("source was called for an invalid id")
+			}
+		})
+	}
+}
+
+func TestCacheControlHeaders(t *testing.T) {
+	tests := []struct {
+		name   string
+		source *fakeSource
+		path   string
+		want   string
+	}{
+		{"search success", &fakeSource{}, "/api/search?q=x", "public, max-age=300"},
+		{"detail success", &fakeSource{}, "/api/manga/1", "public, max-age=300"},
+		{"not found", &fakeSource{err: errNotFound}, "/api/manga/1", "no-store"},
+		{"upstream unavailable", &fakeSource{err: errUpstreamUnavailable}, "/api/search?q=x", "no-store"},
+		{"bad input", &fakeSource{}, "/api/search?q=", "no-store"},
+		{"health", &fakeSource{}, "/api/health", "no-store"},
+		{"unknown path", &fakeSource{}, "/api/nope", "no-store"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			rec := serve(tt.source, http.MethodGet, tt.path)
+			if got := rec.Header().Get("Cache-Control"); got != tt.want {
+				t.Errorf("Cache-Control = %q, want %q", got, tt.want)
 			}
 		})
 	}

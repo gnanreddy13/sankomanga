@@ -54,6 +54,7 @@ type healthResponse struct {
 // call AniList: a health check should say whether *our* server is up, and
 // it shouldn't spend AniList's rate limit every time a monitor pings it.
 func handleHealth(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Cache-Control", cacheControlNoStore)
 	writeJSON(w, http.StatusOK, healthResponse{Status: "ok"})
 }
 
@@ -83,6 +84,7 @@ func (a *app) handleSearch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Cache-Control", cacheControlPublic)
 	writeJSON(w, http.StatusOK, toSearchResponse(query, page, result))
 }
 
@@ -109,6 +111,7 @@ func (a *app) handleMangaDetail(w http.ResponseWriter, r *http.Request) {
 		slog.Warn("unknown AniList status", "status", *media.Status, "id", media.ID)
 	}
 
+	w.Header().Set("Cache-Control", cacheControlPublic)
 	writeJSON(w, http.StatusOK, detail)
 }
 
