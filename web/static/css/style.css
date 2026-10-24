@@ -1,0 +1,482 @@
+/* =============================================================
+   Design tokens
+   Every colour, font, size and timing used on the site lives
+   here, so the whole look can be adjusted in one place.
+   ============================================================= */
+:root {
+  --bg: #000;                             /* pure black page background */
+  --surface: #111114;                     /* slightly lifted areas */
+  --border: rgba(255, 255, 255, 0.07);    /* hairline borders */
+  --border-strong: rgba(255, 255, 255, 0.14);
+  --text: #f4f4f5;
+  --text-muted: #8e8e98;
+  --text-faint: #5c5c66;
+  --accent: #e9e5dc;                      /* the quiet neutral accent */
+
+  /* Inter first; then each device's own fonts. Hiragino and Noto Sans JP
+     make Japanese titles look native on Apple and Android/Windows. */
+  --font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto,
+          "Hiragino Sans", "Noto Sans JP", sans-serif;
+
+  --radius-lg: 28px;
+  --radius-md: 14px;
+  --radius-sm: 10px;
+
+  /* A gentle "ease-out": fast at first, then settling softly. */
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Tells the browser the page is dark, so built-in parts (scrollbars,
+     form controls) are drawn dark too. */
+  color-scheme: dark;
+}
+
+/* =============================================================
+   Base
+   ============================================================= */
+*,
+*::before,
+*::after {
+  box-sizing: border-box; /* widths include padding and border */
+}
+
+html,
+body {
+  margin: 0;
+}
+
+body {
+  min-height: 100vh;
+  min-height: 100dvh; /* "dynamic" height: correct on phones with moving toolbars */
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Hides an element visually but keeps it for screen readers
+   (used for the search box's label). */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* =============================================================
+   Footer (every page)
+   ============================================================= */
+.site-footer {
+  padding: 20px 16px 28px;
+  text-align: center;
+  font-size: 0.8125rem;
+  color: var(--text-faint);
+}
+
+.site-footer a {
+  color: var(--text-muted);
+  text-decoration: none;
+  border-bottom: 1px solid var(--border-strong);
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.site-footer a:hover {
+  color: var(--text);
+  border-color: var(--text-muted);
+}
+
+/* =============================================================
+   Search bar (home now; the other pages will reuse it)
+   ============================================================= */
+.search {
+  position: relative;
+}
+
+.search-input {
+  width: 100%;
+  height: 58px;
+  padding: 0 64px 0 22px; /* room on the right for the button */
+  font: inherit;
+  font-size: 1rem;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  outline: none;
+  transition: border-color 0.2s, background-color 0.2s, box-shadow 0.25s var(--ease);
+}
+
+.search-input::placeholder {
+  color: var(--text-faint);
+}
+
+.search-input:hover {
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.search-input:focus {
+  border-color: rgba(233, 229, 220, 0.45);
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 0 0 4px rgba(233, 229, 220, 0.08);
+}
+
+/* Hide the browser's own "x" clear button in search boxes, for a cleaner look. */
+.search-input::-webkit-search-cancel-button {
+  appearance: none;
+}
+
+.search-button {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: var(--bg);
+  cursor: pointer;
+  transition: transform 0.25s var(--ease), opacity 0.2s;
+}
+
+.search-button:hover {
+  transform: translateX(2px);
+}
+
+.search-button:active {
+  transform: scale(0.96);
+}
+
+.search-button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* Underline variant of the search (home page): a single grey line, like
+   writing on paper. A lighter grey part at the left stretches across the
+   full width while you type. */
+.search--line .search-input {
+  height: 40px;
+  padding: 0 40px 0 0;
+  font-size: 0.875rem;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--border-strong);
+  border-radius: 0;
+}
+
+.search--line .search-input:focus {
+  background: transparent;
+  box-shadow: none;
+}
+
+.search--line::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background-color: var(--text-muted); /* grey */
+  /* Lighter at the left, fading out to the right. */
+  -webkit-mask-image: linear-gradient(90deg, #000, transparent 85%);
+  mask-image: linear-gradient(90deg, #000, transparent 85%);
+  opacity: 0.6;
+  transform: scaleX(0.4);
+  transform-origin: left;
+  transition: transform 0.7s var(--ease), opacity 0.4s;
+  pointer-events: none;
+}
+
+.search--line:focus-within::after {
+  transform: scaleX(1);
+  opacity: 1;
+}
+
+.search--line .search-button {
+  top: 50%;
+  right: 0;
+  width: 32px;
+  height: 32px;
+  transform: translateY(-50%);
+  background: transparent;
+  color: var(--text-muted);
+  border-radius: 8px;
+  transition: color 0.2s, background-color 0.2s;
+}
+
+.search--line .search-button:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.06);
+  transform: translateY(-50%);
+}
+
+/* =============================================================
+   Home page
+   ============================================================= */
+.home {
+  flex: 1;
+  display: grid;
+  place-items: center; /* centres the content both ways */
+  padding: 40px 24px 16px;
+  /* The tilted covers can reach slightly past their window; never let
+     that cause sideways scrolling. */
+  overflow-x: clip;
+}
+
+/* The covers on the left, name and search beside them. */
+.hero {
+  display: flex;
+  align-items: stretch; /* the right side is exactly as tall as the covers */
+  gap: clamp(32px, 4.5vw, 60px);
+}
+
+/* Right side: name, tagline and search grouped together in the vertical
+   middle, beside the covers. */
+.home-intro {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 36px; /* space between the tagline and the search */
+  /* A fixed width (not a percentage: the layout around it sizes itself to
+     its content, so "100%" would just shrink to fit the text). */
+  width: 280px;
+  max-width: 100%;
+  min-width: 0; /* lets long text wrap instead of stretching the layout */
+  /* Always drawn above the covers' glow. */
+  position: relative;
+  z-index: 1;
+}
+
+.brand-name {
+  margin: 0;
+  font-size: clamp(1.375rem, 1.1rem + 0.8vw, 1.75rem);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
+
+.brand-tagline {
+  margin: 8px 0 0;
+  font-size: 0.8125rem;
+  font-style: italic;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+/* Gentle entrance: name and search rise and fade in, one after the other. */
+.home-intro > * {
+  animation: rise-in 0.9s var(--ease) both;
+}
+
+.home-intro > :nth-child(2) {
+  animation-delay: 0.12s;
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* =============================================================
+   Home page: drifting cover columns
+   ============================================================= */
+
+/* The window the covers drift in: tall and narrow, with no box around
+   it. "perspective" lets the slight 3D tilt below look natural. */
+.showcase-window {
+  position: relative;
+  flex: none;
+  width: clamp(210px, 20vw, 260px);
+  height: min(390px, calc(100dvh - 180px));
+  min-height: 320px;
+  perspective: 1400px;
+}
+
+/* A soft glow behind the covers, slowly cycling through their colours
+   (home.js sets --live-color). */
+.showcase-glow {
+  position: absolute;
+  inset: 18% 12%;
+  border-radius: 50%;
+  background-color: var(--live-color, var(--accent));
+  filter: blur(80px);
+  opacity: 0;
+  transition: background-color 2s ease, opacity 1.5s var(--ease);
+}
+
+.showcase-glow.is-on {
+  opacity: 0.14;
+}
+
+.showcase {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  overflow: hidden;
+  /* A slight tilt, turned a little towards the text, so it feels like a
+     wall of covers in space rather than a flat strip. */
+  transform: rotateY(9deg) rotateX(2deg);
+  /* Fade the covers out at the top and bottom, so they emerge from and
+     melt back into the black. The left and right sides stay crisp. */
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 18%, #000 82%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 18%, #000 82%, transparent);
+  /* Hidden until home.js has built the columns, then faded in. */
+  opacity: 0;
+  transition: opacity 1.6s var(--ease);
+}
+
+.showcase.is-ready,
+.showcase.is-fallback {
+  opacity: 1;
+}
+
+/* If the covers can't be loaded: a soft, quiet gradient instead. */
+.showcase.is-fallback {
+  background:
+    radial-gradient(circle at 35% 30%, rgba(233, 229, 220, 0.06), transparent 55%),
+    radial-gradient(circle at 65% 75%, rgba(130, 130, 160, 0.08), transparent 55%);
+}
+
+.showcase-column {
+  min-width: 0;
+}
+
+/* Each track holds its covers twice and slides by half its height, then
+   repeats: see buildColumns in home.js. Each column has its own speed and
+   starting point, and the middle one drifts the other way, so the motion
+   never looks mechanical. */
+.showcase-track {
+  animation: drift-up var(--duration, 64s) linear infinite;
+  animation-delay: var(--delay, 0s);
+  will-change: transform; /* hint: let the graphics card do the moving */
+}
+
+.showcase-column:nth-child(2) .showcase-track {
+  animation-name: drift-down;
+  --duration: 80s;
+  --delay: -14s;
+}
+
+.showcase-column:nth-child(3) .showcase-track {
+  --duration: 72s;
+  --delay: -36s;
+}
+
+.showcase.is-paused .showcase-track {
+  animation-play-state: paused;
+}
+
+@keyframes drift-up {
+  from { transform: translateY(0); }
+  to   { transform: translateY(-50%); }
+}
+
+@keyframes drift-down {
+  from { transform: translateY(-50%); }
+  to   { transform: translateY(0); }
+}
+
+.showcase-tile {
+  /* margin (not gap) between tiles, so both copies in a track are exactly
+     the same height and the loop has no seam */
+  margin-bottom: 10px;
+  aspect-ratio: 7 / 10; /* AniList covers are roughly this shape */
+  overflow: hidden;
+  border-radius: 6px;
+  /* Placeholder while the image loads: the cover's own colour, dimmed so
+     bright colours don't flash on the black page. */
+  background-color: color-mix(in srgb, var(--tile-color, #2a2a30) 25%, #0b0b0d);
+  box-shadow: 0 14px 30px -14px rgba(0, 0, 0, 0.9);
+}
+
+.showcase-tile img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 1s var(--ease);
+}
+
+.showcase-tile img.is-loaded {
+  opacity: 1;
+}
+
+/* =============================================================
+   Smaller screens
+   Phones: a band of drifting covers on top (no tilt), then the
+   name, tagline and search, all centred.
+   ============================================================= */
+@media (max-width: 720px) {
+  .home {
+    padding: 24px 16px 8px;
+  }
+
+  .hero {
+    flex-direction: column;
+    align-items: center;
+    gap: 32px;
+  }
+
+  .showcase-window {
+    /* The same tall, narrow shape as on desktop, a little smaller (about
+       200 × 333px) so it doesn't take over the phone screen. */
+    width: min(54vw, 200px);
+    height: auto;
+    aspect-ratio: 3 / 5;
+    min-height: 0;
+  }
+
+  .showcase {
+    transform: none;
+    gap: 10px;
+  }
+
+  .showcase-tile {
+    margin-bottom: 10px;
+  }
+
+  .home-intro {
+    gap: 28px;
+    justify-content: flex-start;
+    text-align: center;
+  }
+}
+
+/* =============================================================
+   Reduced motion
+   People who turn on "reduce motion" on their device get still
+   covers and no entrance animation (home.js also keeps the colour
+   from changing).
+   ============================================================= */
+@media (prefers-reduced-motion: reduce) {
+  .showcase-track,
+  .home-intro > * {
+    animation: none;
+  }
+
+  .showcase,
+  .showcase-tile img,
+  .showcase-glow,
+  .search--line::after {
+    transition: none;
+  }
+}

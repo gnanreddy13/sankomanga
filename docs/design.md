@@ -15,19 +15,29 @@ not rules: the design can change at any time.
 
 ## Home screen
 
-One centred, width-limited box:
+No box: the content sits directly on the page, centred.
 
 | Part | Decision |
 |---|---|
-| Left (about 55%) | 2–3 columns of popular-manga covers (from `/api/showcase`, ecchi excluded), drifting slowly up and down in opposite directions, endlessly, with faded top and bottom edges. Purely decorative: no hover or click. |
-| Top right | App name, with the tagline below |
-| Bottom right | Search bar, lined up with the bottom of the covers. Enter goes to `/search?q=...`. |
-| Phones | Stacked: name + tagline, search, then a slowly moving strip of covers |
-| Motion | Still covers when the device has "reduce motion" on; paused when the tab is hidden |
+| Background | Pure black (`#000`). |
+| Size | Everything kept small and quiet. |
+| Left | A tall, narrow window (about 250–310px wide, as tall as the right side) of popular covers (from `/api/showcase`, ecchi excluded) drifting up and down in three columns, endlessly: each column at its own slow speed, the middle one the other way. No box: the window fades into the black at the top and bottom (the sides stay crisp), and has a slight 3D tilt towards the text. A soft glow behind it slowly cycles through the covers' colours. Purely decorative: no hover or click. |
+| Right | Name and search grouped together in the vertical middle beside the covers. The app name and tagline, then the search below. (A short hairline rule under the tagline was tried and removed.) |
+| Tagline | Italic, muted grey. |
+| Search | Underline search ("Search a title…", with a small return-arrow button). The line is grey; a lighter grey part stretches full width while typing. Enter goes to `/search?q=...`. |
+| Phones | Stacked and centred: a band of drifting covers (no tilt), then name + tagline, then search |
+| Motion | With "reduce motion" on: still covers, one fixed colour, no entrance animation. Drifting pauses while the tab is hidden. |
 | Loading / failure | Search works immediately; covers fade in (each shows its own colour while loading); a soft gradient if they can't load |
 
 App name: placeholder `manga-app`. Tagline: "explore your next manga".
-Both live in one place each (`web/js/config.js`).
+Both live in one place each (`web/static/js/config.js`). Logo: not decided yet.
+
+Tried and dropped for the home page (kept here so we don't repeat them):
+- A box around the content.
+- A 3D flip book (three.js) riffling through covers to the logo: impressive,
+  but heavy, played only once, and the page backs never looked right
+  (real interior pages would need rights we don't have).
+- A page counter ("01 / 15") above the name.
 
 ## Results screen
 
@@ -60,3 +70,7 @@ is its own HTML page with one small script; Go serves them together with the
 API (so no CORS is needed) and bundles them into the binary with `embed`.
 Visual design is not limited by this: anything CSS can do is possible, and
 libraries can be added for specific effects if ever needed.
+
+Outside resources in use: only the Inter font, from Google Fonts. It could
+be self-hosted before deploying, so visitors' browsers don't contact a third
+party.

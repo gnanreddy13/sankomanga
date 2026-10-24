@@ -7,6 +7,16 @@ import "net/http"
 func newRouter(a *app) http.Handler {
 	mux := http.NewServeMux()
 
+	// --- The website (web.go) ---
+	site := siteFiles()
+	// "/{$}" means exactly "/", not "everything starting with /".
+	mux.HandleFunc("GET /{$}", servePage(site, "index.html"))
+	// CSS, JavaScript, and other files: /static/css/style.css is the file
+	// web/static/css/style.css.
+	mux.HandleFunc("GET /static/", serveStatic(site))
+
+	// --- The JSON API ---
+
 	// One per-IP limiter shared by all data endpoints, so a visitor's
 	// allowance covers them together. Health checks aren't limited.
 	limiter := newIPLimiter()
