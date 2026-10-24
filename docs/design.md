@@ -11,7 +11,7 @@ not rules: the design can change at any time.
 | Accent colour | One quiet neutral accent on home and results. On a title page, accents (score, links, glow) use that title's `coverColor`, falling back to the neutral accent if it's missing or too dark to read. |
 | Fonts | One clean sans-serif (Inter) for everything; titles are just larger and bolder. Japanese text falls back to the device's Japanese font. |
 | Theme | Dark only for now (no light-mode switch). |
-| Footer | "Data from AniList" (linking to anilist.co) on every page, as AniList's terms require. |
+| Footer | "Data from" followed by AniList's official logo (18px, its original colours, loaded from `anilist.co/img/icons/icon.svg`, alt text "AniList"), linking to anilist.co, on every page. AniList's terms only regulate the AniList *name* in app names; they say nothing about the logo. Never recolour the logo. |
 
 ## Home screen
 

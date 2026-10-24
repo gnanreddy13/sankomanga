@@ -92,6 +92,32 @@ body {
   border-color: var(--text-muted);
 }
 
+/* The AniList logo after "Data from": no underline, sitting level with
+   the text, slightly dimmed until you hover it. Its colours are AniList's
+   own and are never changed. */
+.site-footer .footer-logo-link {
+  display: inline-flex;
+  margin-left: 2px;
+  vertical-align: middle;
+  border-bottom: 0;
+  border-radius: 4px;
+  opacity: 0.85;
+  transition: opacity 0.2s;
+}
+
+.site-footer .footer-logo-link:hover {
+  opacity: 1;
+}
+
+.site-footer .footer-logo-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.footer-logo-link img {
+  display: block;
+}
+
 /* =============================================================
    Search bar (home now; the other pages will reuse it)
    ============================================================= */
