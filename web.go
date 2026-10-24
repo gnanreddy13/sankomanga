@@ -43,6 +43,44 @@ func servePage(site fs.FS, name string) http.HandlerFunc {
 	}
 }
 
+// serveNotFoundPage returns a handler that answers with the site's styled
+// "Page not found" page (web/404.html) and the 404 status code, for any
+// address that isn't a page of the site. (http.ServeFileFS always answers
+// 200, so we send the file ourselves.)
+func serveNotFoundPage(site fs.FS) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		page, err := fs.ReadFile(site, "404.html")
+		if err != nil {
+			http.NotFound(w, r) // only if the file were missing from the build
+			return
+		}
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.Header().Set("Cache-Control", cacheControlSite)
+		w.WriteHeader(http.StatusNotFound)
+		w.Write(page)
+	}
+}
+
+// cacheControlFavicon: the tab icon rarely changes, so browsers may keep
+// it for a day instead of asking for it on every page.
+const cacheControlFavicon = "public, max-age=86400"
+
+// serveFavicon answers /favicon.ico, which browsers ask for on their own.
+// Our icon is an SVG (sharp at every size); modern browsers accept it at
+// this address as long as it's labelled as SVG.
+func serveFavicon(site fs.FS) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		icon, err := fs.ReadFile(site, "favicon.svg")
+		if err != nil {
+			http.NotFound(w, r)
+			return
+		}
+		w.Header().Set("Content-Type", "image/svg+xml")
+		w.Header().Set("Cache-Control", cacheControlFavicon)
+		w.Write(icon)
+	}
+}
+
 // serveStatic returns a handler for the CSS, JavaScript and other files
 // under /static/. Go's file server would show a list of files for folder
 // paths like /static/js/; we answer those with 404 instead, since there's

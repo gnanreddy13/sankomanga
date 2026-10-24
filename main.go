@@ -33,8 +33,9 @@ func main() {
 	server := &http.Server{
 		Addr: addr,
 		// logRequests (middleware.go) wraps every route, so every request
-		// is logged and gets a Server-Timing header.
-		Handler: logRequests(newRouter(a)),
+		// is logged and gets a Server-Timing header. compressResponses
+		// (compress.go) gzips responses for browsers that accept it.
+		Handler: logRequests(compressResponses(newRouter(a))),
 
 		// Limit how long a client may take to send its request headers.
 		ReadHeaderTimeout: 5 * time.Second,

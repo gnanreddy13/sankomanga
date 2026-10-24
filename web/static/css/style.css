@@ -10,7 +10,10 @@
   --border-strong: rgba(255, 255, 255, 0.14);
   --text: #f4f4f5;
   --text-muted: #8e8e98;
-  --text-faint: #5c5c66;
+  /* The quietest text (card info lines, footer, placeholders). Still
+     4.7:1 contrast on black, above the 4.5:1 that small text needs to be
+     comfortably readable (WCAG AA). Don't go darker than this. */
+  --text-faint: #77777f;
   --accent: #e9e5dc;                      /* the quiet neutral accent */
 
   /* Inter first; then each device's own fonts. Hiragino and Noto Sans JP
@@ -200,9 +203,13 @@ body {
   border-radius: 0;
 }
 
+/* While the box is selected (typing, or reached with the Tab key), the
+   line turns a lighter grey, so it's clear where you are. A simple state
+   change, not an animation. */
 .search--line .search-input:focus {
   background: transparent;
   box-shadow: none;
+  border-bottom-color: var(--text-muted);
 }
 
 .search--line .search-button {
@@ -607,12 +614,11 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* Hover (or keyboard focus): the cover lifts a little and a white glow
-   (the same for every cover) appears behind it: a glow spreading below
-   plus a faint halo around the edges, like the title page cover, a little
-   softer so it doesn't spill onto the neighbouring covers. The title
-   brightens too. */
-.card:hover .card-cover,
+/* Keyboard focus (and hover, below): the cover lifts a little and a white
+   glow (the same for every cover) appears behind it: a glow spreading
+   below plus a faint halo around the edges, like the title page cover, a
+   little softer so it doesn't spill onto the neighbouring covers. The
+   title brightens too. */
 .card:focus-visible .card-cover {
   transform: translateY(-4px);
   box-shadow:
@@ -620,9 +626,24 @@ body {
     0 0 24px rgba(255, 255, 255, 0.06);
 }
 
-.card:hover .card-title,
 .card:focus-visible .card-title {
   color: var(--text);
+}
+
+/* The same on hover, but only on devices with a real pointer (mouse or
+   trackpad). Touch screens fake a "hover" when you tap, which would leave
+   a cover stuck lifted and glowing when you come back to the page. */
+@media (hover: hover) {
+  .card:hover .card-cover {
+    transform: translateY(-4px);
+    box-shadow:
+      0 18px 56px -12px rgba(255, 255, 255, 0.3),
+      0 0 24px rgba(255, 255, 255, 0.06);
+  }
+
+  .card:hover .card-title {
+    color: var(--text);
+  }
 }
 
 /* Loading placeholders: dark cards with a slow, faint shimmer. */
@@ -938,6 +959,34 @@ body {
   .title.is-loading .title-cover {
     animation: none;
   }
+}
+
+/* =============================================================
+   "Page not found" (404.html): one small centred message.
+   ============================================================= */
+.notfound-page {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 32px 16px;
+  text-align: center;
+}
+
+.notfound-title {
+  margin: 0;
+  font-size: 1.375rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+
+.notfound-text {
+  margin: 0 0 8px;
+  font-size: 0.875rem;
+  font-style: italic;
+  color: var(--text-muted);
 }
 
 /* =============================================================

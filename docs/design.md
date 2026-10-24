@@ -22,11 +22,12 @@ the name, tagline and search, all centred.
 | Part | Decision |
 |---|---|
 | Background | Pure black (`#000`). |
+| Small text | The faintest grey is `#77777f` (4.7:1 contrast on black, above the 4.5:1 small text needs). Never darker. |
 | Size | Everything kept small and quiet. |
 | Covers (top) | A tall, narrow window (3:5, about 200 × 333px) of popular covers (from `/api/showcase`, ecchi excluded) drifting up and down in three columns, endlessly: each column at its own slow speed, the middle one the other way. No box: the window has a short, subtle fade into the black at the top and bottom (about 11% of its height; the sides stay crisp). A soft glow behind it slowly cycles through the covers' colours. Purely decorative: no hover or click. |
 | Below | 32px under the covers: the app name and tagline, then the search 28px below, all centred. (A short hairline rule under the tagline was tried and removed.) |
 | Tagline | Italic, muted grey. |
-| Search | Underline search, same style on both pages: a single, steady grey line (no animation), placeholder "Search…", with a small magnifying-glass button on the right (both pages). The button just turns white on hover (no backing). While there's text, a small × appears just left of it: it clears the box and keeps the cursor there (Escape does the same). Custom rather than the browser's own clear button, which looks different in every browser. Enter goes to `/search?q=...`. |
+| Search | Underline search, same style on both pages: a single, steady grey line (no animation), placeholder "Search…", with a small magnifying-glass button on the right (both pages). The line turns a lighter grey while the box is selected (so keyboard users can see where they are). The button just turns white on hover (no backing). While there's text, a small × appears just left of it: it clears the box and keeps the cursor there (Escape does the same). Custom rather than the browser's own clear button, which looks different in every browser. Enter goes to `/search?q=...`. |
 | Motion | With "reduce motion" on: still covers, one fixed colour, no entrance animation. Drifting pauses while the tab is hidden. |
 | Loading / failure | Search works immediately; covers fade in (each shows its own colour while loading); a soft gradient if they can't load |
 
@@ -51,7 +52,7 @@ Centred, like the home page, on the same pure black.
 | Header | Lined up with the left edge of the grid: "back to [home icon]" (small grey text and icon that simply turn white on hover; links home); then a smaller version of the underline search holding the current search term (280px on desktop; full width on phones, lining up with both edges of the grid); then the count in small italic grey: "6 results", or "20 closest matches" when there are more pages (no grand total: AniList reports 5000 for every search). Kept to what the cards can't tell you. |
 | Grid | A centred block about 800px wide. Balanced covers (~140px): 5 a row on laptops, 4 on tablets, 3 on phones (~105px). |
 | Card | Cover, title (up to 2 lines, then "…"), and one small dim info line like `2009 · Manga · Ongoing · ★ 8.4` ("Ongoing" only for titles still being published; missing year or score left out; on phones the line only wraps between parts). The whole card links to `/manga/{id}`. |
-| Hover | The cover lifts a few pixels with a white glow behind it (the same colour for every cover): a glow spreading below plus a faint halo, like the title page cover but a little softer so it doesn't spill onto neighbouring covers. The title brightens. Same on keyboard focus. |
+| Hover | Only on devices with a real pointer (on touch screens a tap would leave it stuck). The cover lifts a few pixels with a white glow behind it (the same colour for every cover): a glow spreading below plus a faint halo, like the title page cover but a little softer so it doesn't spill onto neighbouring covers. The title brightens. Same on keyboard focus. |
 | Loading | Header right away; 20 dark placeholder cards with a slow, faint shimmer. Covers lazy-load and show their dimmed `coverColor` until the image fades in. |
 | No results | In the count's place: "No manga found for "xyz". Check the spelling, or try the English or Japanese title." |
 | More than 20 | Under the grid: "Only the 20 closest matches are shown. Try a more specific title." ("Load more" is a later feature.) |
@@ -92,6 +93,12 @@ added by the result cards), or home when there was no search.
 | Errors | The same one-liners as the results page. |
 
 Missing facts are always left out, never shown as "—".
+
+## Page not found
+
+Any address that isn't a page of the site gets a small centred message
+("Page not found" / "There's nothing at this address." / "back to [home]")
+with a real 404 status. `/favicon.ico` serves the site's icon.
 
 ## Errors
 

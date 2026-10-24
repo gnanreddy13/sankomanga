@@ -20,6 +20,10 @@ func newRouter(a *app) http.Handler {
 	// CSS, JavaScript, and other files: /static/css/style.css is the file
 	// web/static/css/style.css.
 	mux.HandleFunc("GET /static/", serveStatic(site))
+	mux.HandleFunc("GET /favicon.ico", serveFavicon(site))
+	// "/" matches every address no other route claims: answer those with
+	// the styled "Page not found" page.
+	mux.HandleFunc("/", serveNotFoundPage(site))
 
 	// --- The JSON API ---
 

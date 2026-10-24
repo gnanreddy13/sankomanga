@@ -27,8 +27,11 @@ func TestWebRoutes(t *testing.T) {
 		{"config script", http.MethodGet, "/static/js/config.js", http.StatusOK, "text/javascript", "APP_NAME"},
 		{"no folder listings", http.MethodGet, "/static/js/", http.StatusNotFound, "", ""},
 		{"missing static file", http.MethodGet, "/static/nope.css", http.StatusNotFound, "", ""},
-		{"unknown page", http.MethodGet, "/nope", http.StatusNotFound, "", ""},
-		{"home with wrong method", http.MethodPost, "/", http.StatusMethodNotAllowed, "", ""},
+		// Unknown addresses get the styled "Page not found" page, with a 404.
+		{"unknown page", http.MethodGet, "/nope", http.StatusNotFound, "text/html", "Page not found"},
+		{"unknown nested page", http.MethodGet, "/a/b/c", http.StatusNotFound, "text/html", "Page not found"},
+		// Not a page of the site either (browsers never POST here).
+		{"home with wrong method", http.MethodPost, "/", http.StatusNotFound, "text/html", "Page not found"},
 	}
 
 	for _, tt := range tests {
@@ -48,6 +51,20 @@ func TestWebRoutes(t *testing.T) {
 				t.Errorf("Cache-Control = %q, want no-cache", rec.Header().Get("Cache-Control"))
 			}
 		})
+	}
+}
+
+func TestFavicon(t *testing.T) {
+	rec := serve(&fakeSource{}, http.MethodGet, "/favicon.ico")
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200", rec.Code)
+	}
+	if got := rec.Header().Get("Content-Type"); got != "image/svg+xml" {
+		t.Errorf("Content-Type = %q, want image/svg+xml", got)
+	}
+	if !strings.HasPrefix(rec.Body.String(), "<svg") {
+		t.Errorf("body isn't an SVG image")
 	}
 }
 
