@@ -8,7 +8,7 @@
 // can never inject code. (The only raw HTML is the fixed, data-free markup
 // of the loading placeholders.)
 
-import { fillBranding, preventEmptySearch } from "./common.js";
+import { errorMessage, fillBranding, preventEmptySearch } from "./common.js";
 
 // How many placeholder cards to show while loading (one full page).
 const PLACEHOLDER_COUNT = 20;
@@ -165,17 +165,4 @@ function showError(message) {
   grid.replaceChildren();
   grid.removeAttribute("aria-busy");
   status.textContent = message;
-}
-
-// errorMessage turns an API status code into friendly words.
-function errorMessage(statusCode) {
-  switch (statusCode) {
-    case 429:
-      return "You're searching quite fast. Try again in a few seconds.";
-    case 502:
-    case 503:
-      return "AniList is busy right now. Try again in a few seconds.";
-    default:
-      return "Something went wrong. Try again in a moment.";
-  }
 }

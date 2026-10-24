@@ -14,6 +14,9 @@ func newRouter(a *app) http.Handler {
 	// The results page. The query (?q=...) is read by search.js in the
 	// browser, which then calls /api/search.
 	mux.HandleFunc("GET /search", servePage(site, "search.html"))
+	// A title page. The id is read by manga.js in the browser, which then
+	// calls /api/manga/{id} (and shows "not found" for unknown ids).
+	mux.HandleFunc("GET /manga/{id}", servePage(site, "manga.html"))
 	// CSS, JavaScript, and other files: /static/css/style.css is the file
 	// web/static/css/style.css.
 	mux.HandleFunc("GET /static/", serveStatic(site))

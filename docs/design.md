@@ -62,12 +62,26 @@ magnifying glass on both pages (the underline search won).
 
 ## Title page
 
-- Wider screens: big cover on the left, details on the right (title,
-  subtitle, facts row: format · status · year · chapters · volumes, score as
-  `★ 8.4`, genres as small rounded tags, "View on AniList" link), synopsis
-  below. Phones: stacked, cover first.
-- A soft glow in the cover's colour behind the cover.
-- Missing facts are left out, never shown as "—".
+A centred block (about 780px wide), centred vertically in the window too
+(like the home page; long pages simply start at the top and scroll), with
+"< manga-app" lined up with its left edge, like the results page.
+
+| Part | Decision |
+|---|---|
+| Layout | Cover beside details: the cover on the left, everything else on the right. Phones: stacked, the cover (~180px) centred on top. |
+| Cover | About 240px wide, with a soft white glow behind it (same as the results hover). Shows its dimmed own colour until the image fades in. |
+| Title | Large, then the subtitle in italic grey (hidden when there isn't one). |
+| Facts | One quiet grey line, e.g. `Manga · Finished · 2009 · 141 chapters · 34 volumes`. Missing facts drop out (an ongoing series reads `Manga · Releasing · 1997`). Wraps only between parts. |
+| Score | On its own line, larger and white: `★ 8.4`. Hidden when unknown. |
+| Genres | Small outlined grey pills. Not clickable (yet). |
+| Synopsis | Our cleaned paragraphs, 15px, light grey, line height 1.7, at most ~60 characters a line. Notes look like any other paragraph. |
+| AniList link | "View on AniList ↗" under the synopsis, small and grey, opens in a new tab. |
+| Browser tab | "Shingeki no Kyojin · manga-app". |
+| Loading | Shimmering cover placeholder and faint bars for the text. |
+| Not found | For unknown or filtered ids (and non-numeric ones): "This title isn't available here. Search for another" (links home). |
+| Errors | The same one-liners as the results page. |
+
+Missing facts are always left out, never shown as "—".
 
 ## Errors
 

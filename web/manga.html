@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#000000">
+  <meta name="description" content="Key facts about a Japanese manga.">
+  <!-- The real title is filled in by manga.js. -->
+  <title></title>
+
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2309090b'/%3E%3Crect x='9' y='7' width='14' height='18' rx='2' fill='%23e9e5dc'/%3E%3C/svg%3E">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+
+  <link rel="stylesheet" href="/static/css/style.css">
+  <script type="module" src="/static/js/manga.js"></script>
+</head>
+<body>
+  <main class="title-page">
+
+    <a class="back-link" href="/">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <!-- In its own span: common.js replaces the text of anything marked
+           data-app-name, which would otherwise wipe out the chevron. -->
+      <span data-app-name></span>
+    </a>
+
+    <!-- The title: cover on the left, details on the right (stacked on
+         phones). manga.js fills it in. While loading ("is-loading"), the
+         cover shimmers and faint bars stand in for the text. -->
+    <article class="title is-loading" aria-busy="true">
+      <div class="title-cover"></div>
+
+      <div class="title-body">
+        <div class="title-skeleton" aria-hidden="true">
+          <div class="card-line"></div>
+          <div class="card-line card-line--short"></div>
+          <div class="card-line"></div>
+          <div class="card-line"></div>
+          <div class="card-line card-line--short"></div>
+        </div>
+
+        <h1 class="title-name"></h1>
+        <p class="title-subtitle"></p>
+        <!-- e.g. "Manga · Finished · 2009 · 141 chapters · 34 volumes" -->
+        <p class="title-facts"></p>
+        <!-- e.g. "★ 8.4" -->
+        <p class="title-score"></p>
+        <ul class="title-genres" aria-label="Genres"></ul>
+        <div class="title-synopsis"></div>
+        <a class="title-link" target="_blank" rel="noopener noreferrer">View on AniList ↗</a>
+      </div>
+    </article>
+
+    <!-- "This title isn't available here." or an error, instead of the title. -->
+    <p class="title-message" aria-live="polite"></p>
+  </main>
+
+  <footer class="site-footer">
+    Data from <a href="https://anilist.co" target="_blank" rel="noopener noreferrer">AniList</a>
+  </footer>
+</body>
+</html>

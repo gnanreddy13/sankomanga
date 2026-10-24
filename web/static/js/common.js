@@ -16,6 +16,20 @@ export function fillBranding(pageTitle) {
   }
 }
 
+// errorMessage turns an API error status code into friendly words, so
+// every page describes problems the same way.
+export function errorMessage(statusCode) {
+  switch (statusCode) {
+    case 429:
+      return "You're going quite fast. Try again in a few seconds.";
+    case 502:
+    case 503:
+      return "AniList is busy right now. Try again in a few seconds.";
+    default:
+      return "Something went wrong. Try again in a moment.";
+  }
+}
+
 // preventEmptySearch stops a search form from submitting when the box only
 // contains spaces (the API would answer "query must not be empty"), and
 // trims spaces off the ends of the query before it's sent.

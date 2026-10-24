@@ -18,6 +18,10 @@ func TestWebRoutes(t *testing.T) {
 		{"home page", http.MethodGet, "/", http.StatusOK, "text/html", `action="/search"`},
 		{"results page", http.MethodGet, "/search?q=berserk", http.StatusOK, "text/html", "search.js"},
 		{"results script", http.MethodGet, "/static/js/search.js", http.StatusOK, "text/javascript", "renderResults"},
+		{"title page", http.MethodGet, "/manga/53390", http.StatusOK, "text/html", "manga.js"},
+		// Unusual ids still get the page; manga.js then shows "not found".
+		{"title page with odd id", http.MethodGet, "/manga/abc", http.StatusOK, "text/html", "manga.js"},
+		{"title script", http.MethodGet, "/static/js/manga.js", http.StatusOK, "text/javascript", "renderTitle"},
 		{"stylesheet", http.MethodGet, "/static/css/style.css", http.StatusOK, "text/css", "--bg"},
 		{"home script", http.MethodGet, "/static/js/home.js", http.StatusOK, "text/javascript", "buildColumns"},
 		{"config script", http.MethodGet, "/static/js/config.js", http.StatusOK, "text/javascript", "APP_NAME"},
