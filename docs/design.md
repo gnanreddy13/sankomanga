@@ -48,17 +48,19 @@ Centred, like the home page, on the same pure black.
 
 | Part | Decision |
 |---|---|
-| Header | Lined up with the left edge of the grid: "back to [home icon]" (small grey text and icon that simply turn white on hover; links home); then a smaller version of the underline search holding the current search term; then the count in small italic grey ("6 results", or "20+ results" when there are more pages, since the API has no total). |
+| Header | Lined up with the left edge of the grid: "back to [home icon]" (small grey text and icon that simply turn white on hover; links home); then a smaller version of the underline search holding the current search term; then the count in small italic grey: "6 results", or "20 closest matches" when there are more pages (no grand total: AniList reports 5000 for every search). Kept to what the cards can't tell you. |
 | Grid | A centred block about 800px wide. Balanced covers (~140px): 5 a row on laptops, 4 on tablets, 3 on phones (~105px). |
-| Card | Cover, title (up to 2 lines, then "…"), and one small dim info line like `2009 · Manga · ★ 8.4` (missing year or score left out; on phones the line only wraps between parts). The whole card links to `/manga/{id}`. |
+| Card | Cover, title (up to 2 lines, then "…"), and one small dim info line like `2009 · Manga · Ongoing · ★ 8.4` ("Ongoing" only for titles still being published; missing year or score left out; on phones the line only wraps between parts). The whole card links to `/manga/{id}`. |
 | Hover | The cover lifts a few pixels with a soft white glow behind it (the same colour for every cover); the title brightens. Same on keyboard focus. |
 | Loading | Header right away; 20 dark placeholder cards with a slow, faint shimmer. Covers lazy-load and show their dimmed `coverColor` until the image fades in. |
 | No results | In the count's place: "No manga found for "xyz". Check the spelling, or try the English or Japanese title." |
-| More than 20 | Under the grid: "Showing the 20 best matches. Try a more specific title to narrow it down." ("Load more" is a later feature.) |
+| More than 20 | Under the grid: "Only the 20 closest matches are shown. Try a more specific title." ("Load more" is a later feature.) |
 | Errors | One calm line instead of the grid: AniList busy (502/503), visitor rate-limited (429), or "Something went wrong" for anything else. |
 | Motion | With "reduce motion" on: no lift, no shimmer. |
 
-Tried and dropped: a slim top bar with the name and search side by side;
+Tried and dropped: a summary line totalling formats and ongoing titles
+("4 manga, 2 one-shots · 2 ongoing": it repeated what the cards say, and
+didn't say which were ongoing); a slim top bar with the name and search side by side;
 the search term as a big centred headline over an underline; a centred
 soft grey pill with a grain texture; a grey-outlined pill with a
 magnifying glass on both pages (the underline search won).
@@ -78,13 +80,14 @@ added by the result cards), or home when there was no search.
 | Layout | Cover beside details: the cover on the left, everything else on the right. Phones: stacked, the cover (~180px) centred on top. |
 | Cover | About 240px wide, with a strong white glow behind it (the same colour for every title; stronger than the results hover glow): a soft glow spreading below, plus a faint halo around the edges. Shows its dimmed own colour until the image fades in. |
 | Title | Large, then the subtitle in italic grey (hidden when there isn't one). |
-| Facts | One quiet grey line, e.g. `Manga · Finished · 2009 · 141 chapters · 34 volumes`. Missing facts drop out (an ongoing series reads `Manga · Releasing · 1997`). Wraps only between parts. |
+| Facts | One quiet grey line, e.g. `Manga · Finished · 2009 · 141 chapters · 34 volumes`. Missing facts drop out (an ongoing series reads `Manga · Ongoing · 1997`). Wraps only between parts. |
 | Score | On its own line, larger and white: `★ 8.4`. Hidden when unknown. |
 | Genres | Small outlined grey pills. Not clickable (yet). |
 | Synopsis | Our cleaned paragraphs, 15px, light grey, line height 1.7, at most ~60 characters a line. Notes look like any other paragraph. |
 | AniList link | "View on AniList ↗" under the synopsis, small and grey, opens in a new tab. |
 | Browser tab | "Shingeki no Kyojin · manga-app". |
 | Loading | Shimmering cover placeholder and faint bars for the text. |
+| Status words | AniList's RELEASING is shown as "Ongoing" everywhere (cards and title page): clearer than "Releasing". |
 | Not found | For unknown or filtered ids (and non-numeric ones): "This title isn't available here. Search for another" (links home). |
 | Errors | The same one-liners as the results page. |
 

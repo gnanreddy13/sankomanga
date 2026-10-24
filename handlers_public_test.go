@@ -117,10 +117,11 @@ func TestSearchSuccess(t *testing.T) {
 					CoverImage:   anilistCoverImage{Large: ptr("https://example.com/medium/op.jpg"), Color: ptr("#f1935d")},
 					StartDate:    anilistDate{Year: ptr(1997)},
 					Format:       "MANGA",
+					Status:       ptr("RELEASING"),
 					AverageScore: ptr(91),
 				},
 				{
-					// A sparse one-shot: no English title, colour, or score.
+					// A sparse one-shot: no English title, colour, status, or score.
 					ID:         94261,
 					Title:      anilistTitle{Romaji: ptr("Android wa Furimukanai"), Native: ptr("アンドロイドはふり向かない")},
 					CoverImage: anilistCoverImage{Large: ptr("https://example.com/medium/a.jpg")},
@@ -140,9 +141,9 @@ func TestSearchSuccess(t *testing.T) {
 		"hasNextPage": true,
 		"results": [
 			{"id": 30013, "title": "ONE PIECE", "coverUrl": "https://example.com/medium/op.jpg",
-			 "coverColor": "#f1935d", "year": 1997, "format": "Manga", "score": 9.1},
+			 "coverColor": "#f1935d", "year": 1997, "format": "Manga", "status": "Ongoing", "score": 9.1},
 			{"id": 94261, "title": "Android wa Furimukanai", "coverUrl": "https://example.com/medium/a.jpg",
-			 "coverColor": null, "year": 2002, "format": "One Shot", "score": null}
+			 "coverColor": null, "year": 2002, "format": "One Shot", "status": null, "score": null}
 		]
 	}`)
 
@@ -260,7 +261,7 @@ func TestMangaDetailNulls(t *testing.T) {
 	// Every key is present; missing values are null and missing lists are [].
 	assertJSON(t, rec, http.StatusOK, `{
 		"id": 32688, "title": "Karappo na Bokutachi", "subtitle": null,
-		"format": "Manga", "status": "Releasing", "year": null,
+		"format": "Manga", "status": "Ongoing", "year": null,
 		"chapters": null, "volumes": null, "score": null,
 		"genres": [], "synopsis": [],
 		"coverUrl": null, "coverColor": null,

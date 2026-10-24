@@ -23,6 +23,7 @@ type mangaCard struct {
 	CoverColor *string  `json:"coverColor"`
 	Year       *int     `json:"year"`
 	Format     string   `json:"format"`
+	Status     *string  `json:"status"` // e.g. "Ongoing"; lets the card mark ongoing titles
 	Score      *float64 `json:"score"`
 }
 
@@ -104,6 +105,7 @@ func toCard(m anilistMedia) mangaCard {
 		CoverColor: m.CoverImage.Color,
 		Year:       m.StartDate.Year,
 		Format:     displayFormat(m.Format),
+		Status:     displayStatus(m.Status),
 		Score:      displayScore(m.AverageScore),
 	}
 }

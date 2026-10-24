@@ -115,7 +115,7 @@ func displayScore(score *int) *float64 {
 // statusText maps AniList's status codes to the text we show.
 var statusText = map[string]string{
 	"FINISHED":         "Finished",
-	"RELEASING":        "Releasing",
+	"RELEASING":        "Ongoing", // clearer than AniList's "Releasing"
 	"NOT_YET_RELEASED": "Not yet released",
 	"CANCELLED":        "Cancelled",
 	"HIATUS":           "On hiatus",

@@ -97,6 +97,10 @@ func TestSearchMangaSuccess(t *testing.T) {
 	if !strings.Contains(sent.Body.Query, "SEARCH_MATCH") {
 		t.Errorf("query is missing SEARCH_MATCH sort")
 	}
+	// The results page's summary ("2 ongoing") needs each result's status.
+	if !strings.Contains(sent.Body.Query, "status") {
+		t.Errorf("query doesn't ask for status")
+	}
 	// JSON numbers decode as float64, hence 2.0 and 20.0 here.
 	if sent.Body.Variables["search"] != "one piece" || sent.Body.Variables["page"] != 2.0 || sent.Body.Variables["perPage"] != 20.0 {
 		t.Errorf("variables = %v", sent.Body.Variables)

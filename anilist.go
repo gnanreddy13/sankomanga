@@ -71,6 +71,7 @@ query ($search: String, $page: Int, $perPage: Int) {
       coverImage { large color }
       startDate { year }
       format
+      status
       averageScore
     }
   }

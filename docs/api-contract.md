@@ -77,6 +77,7 @@ catalog through us. Real users never page that far.
       "coverColor": "#f1935d",
       "year": 1997,
       "format": "Manga",
+      "status": "Ongoing",
       "score": 9.1
     }
   ]
@@ -84,9 +85,10 @@ catalog through us. Real users never page that far.
 ```
 
 - `query` is the trimmed query, so the frontend can show "Results for …".
-- `hasNextPage` isn't used yet. It's there so "load more" can be added later
-  without changing the contract.
-- There is no total count: AniList caps totals at 5000, so the number would be misleading.
+- `hasNextPage` tells the frontend whether there are more results than this page
+  (it shows "20 closest matches" then). It also lets "load more" be added later.
+- There is no total count: AniList reports 5000 for every search (checked: even
+  "berserk", which has 6 results), so the number would be wrong.
 - Results are AniList's best-match order. At most 20 per page.
 
 ### Card fields
@@ -99,6 +101,7 @@ catalog through us. Real users never page that far.
 | `coverColor` | string | yes | `coverImage.color`, e.g. `"#f1935d"`. Placeholder colour while the image loads. |
 | `year` | int | yes | `startDate.year` |
 | `format` | string | no | `"Manga"` or `"One Shot"` |
+| `status` | string | yes | See [Status](#status). Added so result cards can mark ongoing titles ("Ongoing"). |
 | `score` | number | yes | See [Score](#score) |
 
 ---
@@ -215,7 +218,7 @@ formats it with one decimal ("8.0"). `null` stays `null`.
 | AniList | We return |
 |---|---|
 | `FINISHED` | `"Finished"` |
-| `RELEASING` | `"Releasing"` |
+| `RELEASING` | `"Ongoing"` (clearer than AniList's "Releasing") |
 | `NOT_YET_RELEASED` | `"Not yet released"` |
 | `CANCELLED` | `"Cancelled"` |
 | `HIATUS` | `"On hiatus"` |
@@ -270,6 +273,7 @@ query ($search: String, $page: Int) {
       coverImage { large color }
       startDate { year }
       format
+      status
       averageScore
     }
   }

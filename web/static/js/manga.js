@@ -105,7 +105,7 @@ function renderCover({ title, coverUrl, coverColor }) {
 // factsLine builds e.g. "Manga · Finished · 2009 · 141 chapters · 34 volumes",
 // leaving out anything missing. (Ongoing series often have no counts.)
 //
-// Non-breaking spaces ( ) keep each part whole ("141 chapters") and
+// Non-breaking spaces (\u00a0) keep each part whole ("141 chapters") and
 // keep each "·" with the part before it, so the line only breaks between
 // parts on narrow screens.
 function factsLine({ format, status, year, chapters, volumes }) {
@@ -122,7 +122,7 @@ function factsLine({ format, status, year, chapters, volumes }) {
   if (volumes !== null) {
     parts.push(volumes === 1 ? "1 volume" : `${volumes} volumes`);
   }
-  return parts.map((part) => part.replaceAll(" ", " ")).join(" · ");
+  return parts.map((part) => part.replaceAll(" ", "\u00a0")).join("\u00a0· ");
 }
 
 // --- Back to the search results -----------------------------------------

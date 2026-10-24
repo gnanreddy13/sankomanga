@@ -233,7 +233,7 @@ func TestDisplayStatus(t *testing.T) {
 		want   *string
 	}{
 		{ptr("FINISHED"), ptr("Finished")},
-		{ptr("RELEASING"), ptr("Releasing")},
+		{ptr("RELEASING"), ptr("Ongoing")},
 		{ptr("NOT_YET_RELEASED"), ptr("Not yet released")},
 		{ptr("CANCELLED"), ptr("Cancelled")},
 		{ptr("HIATUS"), ptr("On hiatus")},

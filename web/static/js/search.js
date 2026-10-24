@@ -67,13 +67,14 @@ function renderResults({ results, hasNextPage }) {
     return;
   }
 
-  status.textContent = resultCount(results.length, hasNextPage);
+  status.textContent = summaryLine(results, hasNextPage);
   for (const manga of results) {
     grid.append(createCard(manga));
   }
 
+  // Below the grid, only when results are cut off.
   note.textContent = hasNextPage
-    ? `Showing the ${results.length} best matches. Try a more specific title to narrow it down.`
+    ? `Only the ${results.length} closest matches are shown. Try a more specific title.`
     : "";
 }
 
@@ -117,29 +118,36 @@ function createCard(manga) {
   return item;
 }
 
-// infoLine builds e.g. "2009 · Manga · ★ 8.4", leaving out any part that's
-// missing (year and score are often unknown).
+// infoLine builds e.g. "2009 · Manga · Ongoing · ★ 8.4", leaving out any
+// part that's missing (year and score are often unknown). "Ongoing" only
+// appears for titles still being published; finished ones stay quiet.
 //
 // On narrow phone cards the line may need to wrap. Non-breaking spaces
-// ( ) keep each part whole ("One Shot", "★ 8.4") and keep each "·"
+// (\u00a0) keep each part whole ("One Shot", "★ 8.4") and keep each "·"
 // with the part before it, so the line only ever breaks between parts.
-function infoLine({ year, format, score }) {
+function infoLine({ year, format, status, score }) {
   const parts = [];
   if (year !== null) {
     parts.push(String(year));
   }
   parts.push(format);
+  if (status === "Ongoing") {
+    parts.push("Ongoing");
+  }
   if (score !== null) {
     parts.push(`★ ${score.toFixed(1)}`); // 8 → "8.0"
   }
-  return parts.map((part) => part.replaceAll(" ", " ")).join(" · ");
+  return parts.map((part) => part.replaceAll(" ", "\u00a0")).join("\u00a0· ");
 }
 
-// resultCount says how many results there are. The API doesn't give a total
-// (AniList's totals aren't reliable), so with more pages we say "20+".
-function resultCount(count, hasMore) {
+// summaryLine says only what the cards can't: how many results there are,
+// and whether there are more than shown. e.g. "6 results", or
+// "20 closest matches" when there are more pages. (There's no grand total:
+// AniList reports 5000 for every search, so it can't be trusted.)
+function summaryLine(results, hasMore) {
+  const count = results.length;
   if (hasMore) {
-    return `${count}+ results`;
+    return `${count} closest matches`;
   }
   return count === 1 ? "1 result" : `${count} results`;
 }
