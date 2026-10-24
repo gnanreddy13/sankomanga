@@ -10,12 +10,15 @@ import (
 func main() {
 	addr := ":" + port()
 
+	// The handlers get their manga data from the real AniList client.
+	a := &app{source: newAniListClient()}
+
 	// We build an http.Server ourselves instead of calling http.ListenAndServe
 	// directly, because the shortcut has no timeouts. Without them, a slow or
 	// malicious client can hold a connection open forever.
 	server := &http.Server{
 		Addr:    addr,
-		Handler: newRouter(),
+		Handler: newRouter(a),
 
 		// Limit how long a client may take to send its request headers.
 		ReadHeaderTimeout: 5 * time.Second,
