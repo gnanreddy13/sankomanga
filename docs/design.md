@@ -25,11 +25,13 @@ the name, tagline and search, all centred.
 | Small text | The faintest grey is `#77777f` (4.7:1 contrast on black, above the 4.5:1 small text needs). Never darker. |
 | Size | Everything kept small and quiet. |
 | Covers (top) | A tall, narrow window (3:5, about 200 × 333px) of popular covers (from `/api/showcase`, ecchi excluded) drifting up and down in three columns, endlessly: each column at its own slow speed, the middle one the other way. No box: the window has a short, subtle fade into the black at the top and bottom (about 11% of its height; the sides stay crisp). A soft glow behind it slowly cycles through the covers' colours. Purely decorative: no hover or click. |
-| Below | 32px under the covers: the app name and tagline, then the search 28px below, all centred. (A short hairline rule under the tagline was tried and removed.) |
+| Below | 32px under the covers: the app name and tagline, then a quiet hint 20px below, all centred. No search bar on the page. (A short hairline rule under the tagline was tried and removed.) |
 | Tagline | Italic, muted grey. |
-| Search | Underline search, same style on both pages: a single, steady grey line (no animation), placeholder "Search…", with a small magnifying-glass button on the right (both pages). The line turns a lighter grey while the box is selected (so keyboard users can see where they are). The button just turns white on hover (no backing). While there's text, a small × appears just left of it: it clears the box and keeps the cursor there (Escape does the same). Custom rather than the browser's own clear button, which looks different in every browser. Enter goes to `/search?q=...`. |
+| Search hint | Small faint text that's also a real button: "Type to search" on devices with a keyboard and mouse, "Tap anywhere to search" on touch screens. |
+| Search overlay | The search box opens on top of the page, which is dimmed and blurred. It opens by typing any letter (that letter starts the search), "/", clicking or tapping anywhere (except links), or the hint. It sits in the upper part of the screen (clear of phone keyboards), in a bigger version of the underline style. Closes with Esc (the first Esc clears any text), a click/tap outside, or the browser's back button/gesture (it adds one history step while open; searching replaces that step, so "back" from the results goes straight home). Tab stays inside the box while open. |
+| Search style | Underline search, same style in the home overlay and on the results page: a single, steady grey line (no animation), placeholder "Search…", with a small magnifying-glass button on the right (both pages). The line turns a lighter grey while the box is selected (so keyboard users can see where they are). The button just turns white on hover (no backing). While there's text, a small × appears just left of it: it clears the box and keeps the cursor there (Escape does the same). Custom rather than the browser's own clear button, which looks different in every browser. Enter goes to `/search?q=...`. |
 | Motion | With "reduce motion" on: still covers, one fixed colour, no entrance animation. Drifting pauses while the tab is hidden. |
-| Loading / failure | Search works immediately; covers fade in (each shows its own colour while loading); a soft gradient if they can't load |
+| Loading / failure | Search (the overlay) works immediately; covers fade in (each shows its own colour while loading); a soft gradient if they can't load |
 
 App name: placeholder `manga-app`. Tagline: "explore your next manga".
 Both live in one place each (`web/static/js/config.js`). Logo: not decided yet.
@@ -42,6 +44,7 @@ Tried and dropped for the home page (kept here so we don't repeat them):
 - A page counter ("01 / 15") above the name.
 - On desktop, the covers on the left (slightly tilted towards the text) with
   the name and search beside them; now stacked like on phones everywhere.
+- A visible search bar on the home page (replaced by the hint and overlay).
 
 ## Results screen
 
@@ -49,7 +52,7 @@ Centred, like the home page, on the same pure black.
 
 | Part | Decision |
 |---|---|
-| Header | Lined up with the left edge of the grid: "back to [home icon]" (small grey text and icon that simply turn white on hover; links home); then a smaller version of the underline search holding the current search term (280px on desktop; full width on phones, lining up with both edges of the grid); then the count in small italic grey: "6 results", or "20 closest matches" when there are more pages (no grand total: AniList reports 5000 for every search). Kept to what the cards can't tell you. |
+| Header | Lined up with the left edge of the grid: "back to [home icon]" (small grey text and icon that simply turn white on hover; links home); then a smaller version of the underline search holding the current search term ("/" jumps to it and selects the text) (280px on desktop; full width on phones, lining up with both edges of the grid); then the count in small italic grey: "6 results", or "20 closest matches" when there are more pages (no grand total: AniList reports 5000 for every search). Kept to what the cards can't tell you. |
 | Grid | A centred block about 800px wide. Balanced covers (~140px): 5 a row on laptops, 4 on tablets, 3 on phones (~105px). |
 | Card | Cover, title (up to 2 lines, then "…"), and one small dim info line like `2009 · Manga · Ongoing · ★ 8.4` ("Ongoing" only for titles still being published; missing year or score left out; on phones the line only wraps between parts). The whole card links to `/manga/{id}`. |
 | Hover | Only on devices with a real pointer (on touch screens a tap would leave it stuck). The cover lifts a few pixels with a white glow behind it (the same colour for every cover): a glow spreading below plus a faint halo, like the title page cover but a little softer so it doesn't spill onto neighbouring covers. The title brightens. Same on keyboard focus. |
@@ -93,6 +96,16 @@ added by the result cards), or home when there was no search.
 | Errors | The same one-liners as the results page. |
 
 Missing facts are always left out, never shown as "—".
+
+## Keyboard and touch
+
+- Keyboard: everything is reachable with Tab in reading order, with visible
+  focus; Enter searches and opens cards; Esc clears / closes; "/" opens the
+  search (home) or jumps to it (results).
+- Touch: small icon buttons get invisible tap areas of at least 44px on touch
+  screens (no visual change). Covers dip slightly while pressed. Hover effects
+  only apply on devices with a real pointer. No custom swipe gestures: the
+  browser's own back gesture works everywhere.
 
 ## Page not found
 

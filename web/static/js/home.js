@@ -1,26 +1,26 @@
-// The home page: fills in the name and tagline, and fills the window on
-// the left with popular covers (from /api/showcase) drifting up and down
-// in three columns, endlessly.
+// The home page: fills in the name and tagline, fills the window with
+// popular covers (from /api/showcase) drifting up and down in three
+// columns, endlessly, and sets up the search box that opens on top of the
+// page (search-overlay.js).
 
-import { addClearButton, fillBranding, preventEmptySearch } from "./common.js";
+import { fillBranding } from "./common.js";
+import { setUpSearchOverlay } from "./search-overlay.js";
 
 // The fewest covers a column needs to be tall enough to drift smoothly.
 const MIN_COVERS_PER_COLUMN = 6;
 
-// How often the glow and the search underline move on to the next
-// cover's colour.
+// How often the glow behind the covers moves on to the next cover's colour.
 const COLOR_CYCLE_MS = 5000;
 
 const showcase = document.querySelector(".showcase");
 const glow = document.querySelector(".showcase-glow");
 
 fillBranding();
-preventEmptySearch(document.querySelector(".search"));
-addClearButton(document.querySelector(".search"));
+setUpSearchOverlay();
 loadShowcase();
 pauseWhileHidden();
 
-// loadShowcase fetches the covers and builds the columns. The search bar
+// loadShowcase fetches the covers and builds the columns. The search
 // works the whole time; the covers fade in once they're ready. If anything
 // goes wrong, the window shows a soft gradient instead.
 async function loadShowcase() {
@@ -105,10 +105,10 @@ function createTile(cover) {
 
 // --- Colours ------------------------------------------------------------
 
-// cycleColors tints the glow behind the covers and the search underline
-// with one cover's colour, then slowly moves on to the next every
-// COLOR_CYCLE_MS. (The CSS makes each change a slow fade.) People who
-// prefer reduced motion get the first colour only.
+// cycleColors tints the glow behind the covers with one cover's colour,
+// then slowly moves on to the next every COLOR_CYCLE_MS. (The CSS makes
+// each change a slow fade.) People who prefer reduced motion get the
+// first colour only.
 function cycleColors(covers) {
   const colors = covers.map((cover) => cover.coverColor).filter(Boolean);
   if (colors.length === 0) {
@@ -128,8 +128,7 @@ function cycleColors(covers) {
   }, COLOR_CYCLE_MS);
 }
 
-// setLiveColor sets the --live-color CSS variable, which the glow and the
-// search underline read.
+// setLiveColor sets the --live-color CSS variable, which the glow reads.
 function setLiveColor(color) {
   document.documentElement.style.setProperty("--live-color", color);
 }

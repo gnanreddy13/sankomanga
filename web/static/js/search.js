@@ -8,7 +8,7 @@
 // can never inject code. (The only raw HTML is the fixed, data-free markup
 // of the loading placeholders.)
 
-import { addClearButton, errorMessage, fillBranding, preventEmptySearch } from "./common.js";
+import { addClearButton, errorMessage, fillBranding, focusSearchOnSlash, preventEmptySearch } from "./common.js";
 
 // How many placeholder cards to show while loading (one full page).
 const PLACEHOLDER_COUNT = 20;
@@ -29,6 +29,7 @@ if (query === "") {
   input.value = query;
   preventEmptySearch(form);
   addClearButton(form); // after filling in the query, so the × shows right away
+  focusSearchOnSlash(input);
   search(query);
 }
 

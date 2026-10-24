@@ -25,6 +25,7 @@ func TestWebRoutes(t *testing.T) {
 		{"stylesheet", http.MethodGet, "/static/css/style.css", http.StatusOK, "text/css", "--bg"},
 		{"home script", http.MethodGet, "/static/js/home.js", http.StatusOK, "text/javascript", "buildColumns"},
 		{"config script", http.MethodGet, "/static/js/config.js", http.StatusOK, "text/javascript", "APP_NAME"},
+		{"search overlay script", http.MethodGet, "/static/js/search-overlay.js", http.StatusOK, "text/javascript", "setUpSearchOverlay"},
 		{"no folder listings", http.MethodGet, "/static/js/", http.StatusNotFound, "", ""},
 		{"missing static file", http.MethodGet, "/static/nope.css", http.StatusNotFound, "", ""},
 		// Unknown addresses get the styled "Page not found" page, with a 404.

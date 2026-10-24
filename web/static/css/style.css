@@ -309,8 +309,9 @@ body {
 .home-intro {
   display: flex;
   flex-direction: column;
+  align-items: center;
   justify-content: flex-start;
-  gap: 28px; /* space between the tagline and the search */
+  gap: 20px; /* space between the tagline and the search hint */
   text-align: center;
   /* A fixed width (not a percentage: the layout around it sizes itself to
      its content, so "100%" would just shrink to fit the text). */
@@ -721,7 +722,8 @@ body {
   }
 
   .card:hover .card-cover,
-  .card:focus-visible .card-cover {
+  .card:focus-visible .card-cover,
+  .card:active .card-cover {
     transform: none;
   }
 
@@ -962,6 +964,107 @@ body {
 }
 
 /* =============================================================
+   Home page: search overlay
+   The home page has no search bar. A quiet hint sits under the
+   tagline, and the search box opens on top of the blurred page
+   (search-overlay.js).
+   ============================================================= */
+
+/* The hint: small, quiet text that's also a real button. */
+.search-hint {
+  padding: 6px 10px;
+  font: inherit;
+  font-size: 0.8125rem;
+  letter-spacing: 0.01em;
+  color: var(--text-faint);
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.search-hint:hover {
+  color: var(--text-muted);
+}
+
+.search-hint:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Show the wording that fits the device: "Type to search" where there's
+   a keyboard and mouse, "Tap anywhere to search" on touch screens. */
+.search-hint--touch {
+  display: none;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .search-hint--keys {
+    display: none;
+  }
+
+  .search-hint--touch {
+    display: inline;
+  }
+}
+
+/* The overlay: covers the whole window, dims and blurs the page behind,
+   and holds the search box in its upper part (on phones, the on-screen
+   keyboard covers the lower half). */
+.search-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  justify-items: center;
+  align-items: start;
+  padding: min(28vh, 220px) 16px 16px;
+  background: rgba(0, 0, 0, 0.55);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  animation: overlay-in 0.25s var(--ease) both;
+}
+
+/* Our "display: grid" above would otherwise override the browser's
+   built-in "hidden means invisible". */
+.search-overlay[hidden] {
+  display: none;
+}
+
+/* No scrolling the page behind while the search is open. */
+body.search-open {
+  overflow: hidden;
+}
+
+@keyframes overlay-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* The search box itself: the same grey line style, just bigger. */
+.search--overlay {
+  width: min(440px, 100%);
+  animation: rise-in 0.35s var(--ease) both;
+}
+
+.search--overlay .search-input {
+  height: 52px;
+  padding-right: 76px; /* room for the × and the magnifying glass */
+  font-size: 1.25rem;
+  letter-spacing: -0.01em;
+}
+
+.search--overlay .search-button {
+  width: 40px;
+  height: 40px;
+}
+
+.search--overlay .search-clear {
+  right: 40px;
+}
+
+/* =============================================================
    "Page not found" (404.html): one small centred message.
    ============================================================= */
 .notfound-page {
@@ -990,6 +1093,58 @@ body {
 }
 
 /* =============================================================
+   Touch screens
+   Fingers need bigger targets than mouse pointers: Apple
+   recommends at least 44px, Android 48px. The small icon buttons
+   get larger INVISIBLE tap areas here (an empty ::after layer
+   reaching beyond the button), so nothing changes visually.
+   ============================================================= */
+@media (pointer: coarse) {
+  .icon-link,
+  .site-footer .footer-logo-link {
+    position: relative; /* so their tap area is placed around them */
+  }
+
+  .search-button::after,
+  .search-clear::after,
+  .icon-link::after,
+  .site-footer .footer-logo-link::after {
+    content: "";
+    position: absolute;
+  }
+
+  .search-button::after {
+    inset: -8px; /* 28–40px button → 44–56px to tap */
+  }
+
+  .search-clear::after {
+    inset: -9px; /* 26px × → 44px to tap */
+  }
+
+  .icon-link::after {
+    inset: -6px -8px; /* 32px tall → 44px */
+  }
+
+  .site-footer .footer-logo-link::after {
+    inset: -13px; /* 18px logo → 44px */
+  }
+}
+
+/* Tapping a cover on a touch screen: it dips slightly while your finger
+   is down, so the tap feels acknowledged straight away (touch screens
+   don't get the hover lift). */
+.card {
+  -webkit-tap-highlight-color: transparent; /* no grey flash on iPhones */
+}
+
+@media (hover: none) and (prefers-reduced-motion: no-preference) {
+  .card:active .card-cover {
+    transform: scale(0.97);
+    transition-duration: 0.12s;
+  }
+}
+
+/* =============================================================
    Reduced motion
    People who turn on "reduce motion" on their device get still
    covers and no entrance animation (home.js also keeps the colour
@@ -1005,5 +1160,10 @@ body {
   .showcase-tile img,
   .showcase-glow {
     transition: none;
+  }
+
+  .search-overlay,
+  .search--overlay {
+    animation: none;
   }
 }

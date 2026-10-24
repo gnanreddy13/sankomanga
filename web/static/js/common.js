@@ -46,7 +46,9 @@ export function addClearButton(form) {
   clear.innerHTML =
     '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
     '<path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
-  form.append(clear);
+  // Placed before the search button, so the Tab key reaches them in the
+  // same order you see them (the × sits to the left of the button).
+  form.insertBefore(clear, form.querySelector(".search-button"));
 
   const showOrHide = () => form.classList.toggle("has-text", input.value !== "");
 
@@ -69,6 +71,25 @@ export function addClearButton(form) {
   window.addEventListener("pageshow", showOrHide);
 
   showOrHide();
+}
+
+// focusSearchOnSlash makes the "/" key jump to a search box from anywhere
+// on the page (a common shortcut on sites like GitHub and YouTube), and
+// selects its text so you can type a new search straight away. It's
+// ignored while you're already typing in a box.
+export function focusSearchOnSlash(input) {
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "/" || event.ctrlKey || event.metaKey || event.altKey) {
+      return;
+    }
+    const typingSomewhere = event.target.closest("input, textarea, [contenteditable]");
+    if (typingSomewhere) {
+      return;
+    }
+    event.preventDefault(); // don't type the "/" itself
+    input.focus();
+    input.select();
+  });
 }
 
 // preventEmptySearch stops a search form from submitting when the box only
