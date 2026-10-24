@@ -391,10 +391,12 @@ body {
   /* A slight tilt, turned a little towards the text, so it feels like a
      wall of covers in space rather than a flat strip. */
   transform: rotateY(9deg) rotateX(2deg);
-  /* Fade the covers out at the top and bottom, so they emerge from and
-     melt back into the black. The left and right sides stay crisp. */
-  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 18%, #000 82%, transparent);
-  mask-image: linear-gradient(to bottom, transparent, #000 18%, #000 82%, transparent);
+  /* A short, subtle fade at the top and bottom, so covers emerge from and
+     melt back into the black without a hard edge. The extra 60% step in
+     the middle of each fade keeps such a short fade smooth. The left and
+     right sides stay crisp. */
+  -webkit-mask-image: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.6) 5%, #000 11%, #000 89%, rgba(0, 0, 0, 0.6) 95%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.6) 5%, #000 11%, #000 89%, rgba(0, 0, 0, 0.6) 95%, transparent);
   /* Hidden until home.js has built the columns, then faded in. */
   opacity: 0;
   transition: opacity 1.6s var(--ease);
