@@ -375,8 +375,8 @@ body {
 .cover-row {
   /* Room above and below the covers for their glow (the negative margin
      keeps the room from pushing the layout around). */
-  padding: 36px 0;
-  margin: -36px 0;
+  padding: 48px 0;
+  margin: -48px 0;
   pointer-events: none;
   opacity: 0; /* faded in by home.js once the covers are ready */
   transition: opacity 1.2s var(--ease);
@@ -427,8 +427,9 @@ body {
   background-color: color-mix(in srgb, var(--card-color, #2a2a30) 25%, #0b0b0d);
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.05),
-    /* A soft glow in the cover's own colour, spilling into the black. */
-    0 0 40px -6px color-mix(in srgb, var(--card-color, #2a2a30) 55%, transparent);
+    /* A soft white glow, the same for every cover (like the glows on
+       the results and title pages), spilling evenly into the black. */
+    0 0 48px -4px rgba(255, 255, 255, 0.3);
 }
 
 .row-cover img {
