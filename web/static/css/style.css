@@ -607,12 +607,17 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* Hover (or keyboard focus): the cover lifts a little and a soft white
-   glow (the same for every cover) appears behind it; the title brightens. */
+/* Hover (or keyboard focus): the cover lifts a little and a white glow
+   (the same for every cover) appears behind it: a glow spreading below
+   plus a faint halo around the edges, like the title page cover, a little
+   softer so it doesn't spill onto the neighbouring covers. The title
+   brightens too. */
 .card:hover .card-cover,
 .card:focus-visible .card-cover {
   transform: translateY(-4px);
-  box-shadow: 0 18px 40px -10px rgba(255, 255, 255, 0.22);
+  box-shadow:
+    0 18px 56px -12px rgba(255, 255, 255, 0.3),
+    0 0 24px rgba(255, 255, 255, 0.06);
 }
 
 .card:hover .card-title,
