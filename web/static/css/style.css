@@ -980,16 +980,17 @@ body {
 }
 
 /* The overlay: covers the whole window, dims and blurs the page behind,
-   and holds the search box in its upper part (on phones, the on-screen
-   keyboard covers the lower half). */
+   and holds the search box in the middle, where the name sits. (On
+   phones, the on-screen keyboard covers roughly the lower 40%, so the
+   middle stays just clear of it.) */
 .search-overlay {
   position: fixed;
   inset: 0;
   z-index: 10;
   display: grid;
   justify-items: center;
-  align-items: start;
-  padding: min(28vh, 220px) 16px 16px;
+  align-items: center;
+  padding: 16px;
   background: rgba(0, 0, 0, 0.55);
   -webkit-backdrop-filter: blur(14px);
   backdrop-filter: blur(14px);
