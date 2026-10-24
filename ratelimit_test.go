@@ -1,6 +1,8 @@
 package main
 
 import (
+	"net/http"
+	"net/http/httptest"
 	"testing"
 	"time"
 )
@@ -94,5 +96,149 @@ func TestRetryAfterSeconds(t *testing.T) {
 		if got := retryAfterSeconds(tt.wait); got != tt.want {
 			t.Errorf("retryAfterSeconds(%v) = %d, want %d", tt.wait, got, tt.want)
 		}
+	}
+}
+
+// newTestIPLimiter returns a per-IP limiter with a fake clock.
+func newTestIPLimiter(maxVisitors int) (*ipLimiter, *fakeClock) {
+	clock := newFakeClock()
+	limiter := newIPLimiter()
+	limiter.now = clock.now
+	limiter.lastCleanup = clock.now()
+	limiter.maxVisitors = maxVisitors
+	return limiter, clock
+}
+
+func TestIPLimiterBurstAndRefill(t *testing.T) {
+	limiter, clock := newTestIPLimiter(maxTrackedIPs)
+
+	for i := range perIPBurst {
+		if ok, _ := limiter.allow("192.0.2.1"); !ok {
+			t.Fatalf("request %d refused, want a burst of %d allowed", i+1, perIPBurst)
+		}
+	}
+
+	ok, wait := limiter.allow("192.0.2.1")
+	if ok {
+		t.Fatal("request over the burst was allowed")
+	}
+	assertAbout(t, wait, 2*time.Second) // 30/min = one every 2s
+
+	// Another visitor is not affected.
+	if ok, _ := limiter.allow("192.0.2.2"); !ok {
+		t.Error("a different visitor was refused")
+	}
+
+	clock.advance(2 * time.Second)
+	if ok, _ := limiter.allow("192.0.2.1"); !ok {
+		t.Error("request refused after waiting for a refill")
+	}
+}
+
+func TestIPLimiterForgetsIdleVisitors(t *testing.T) {
+	limiter, clock := newTestIPLimiter(maxTrackedIPs)
+
+	limiter.allow("192.0.2.1")
+	clock.advance(ipIdleTimeout)
+	limiter.allow("192.0.2.2") // cleanup is due, so 192.0.2.1 gets forgotten
+
+	if _, found := limiter.visitors["192.0.2.1"]; found {
+		t.Error("idle visitor was not forgotten")
+	}
+	if len(limiter.visitors) != 1 {
+		t.Errorf("tracking %d visitors, want 1", len(limiter.visitors))
+	}
+}
+
+func TestIPLimiterWhenFull(t *testing.T) {
+	captureLogs(t) // keep the expected warning out of the test output
+	limiter, clock := newTestIPLimiter(2)
+
+	limiter.allow("a")
+	clock.advance(30 * time.Second)
+	limiter.allow("b")
+
+	// Full, and nobody is idle: a new visitor is let through, untracked.
+	if ok, _ := limiter.allow("c"); !ok {
+		t.Error("new visitor refused when the limiter was full")
+	}
+	if _, found := limiter.visitors["c"]; found || len(limiter.visitors) != 2 {
+		t.Errorf("limiter grew past its cap: %d visitors", len(limiter.visitors))
+	}
+
+	// Once "a" has gone idle, a new visitor takes its place and is tracked.
+	clock.advance(ipIdleTimeout - 30*time.Second)
+	limiter.allow("d")
+	if _, found := limiter.visitors["d"]; !found {
+		t.Error("new visitor not tracked after an idle one was forgotten")
+	}
+	if _, found := limiter.visitors["a"]; found {
+		t.Error("idle visitor should have been forgotten to make room")
+	}
+}
+
+func TestClientKey(t *testing.T) {
+	tests := []struct {
+		remoteAddr string
+		want       string
+	}{
+		{"192.0.2.1:1234", "192.0.2.1"},
+		// Two addresses in the same IPv6 /64 count as one visitor...
+		{"[2001:db8:1:2:aaaa::1]:443", "2001:db8:1:2::/64"},
+		{"[2001:db8:1:2:bbbb::9]:443", "2001:db8:1:2::/64"},
+		// ...but a different /64 is a different visitor.
+		{"[2001:db8:1:3::1]:443", "2001:db8:1:3::/64"},
+		// IPv4 written in IPv6 form is treated as plain IPv4.
+		{"[::ffff:192.0.2.1]:80", "192.0.2.1"},
+		// Not an IP address at all: used as is.
+		{"not-an-address", "not-an-address"},
+	}
+	for _, tt := range tests {
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		req.RemoteAddr = tt.remoteAddr
+		if got := clientKey(req); got != tt.want {
+			t.Errorf("clientKey(%q) = %q, want %q", tt.remoteAddr, got, tt.want)
+		}
+	}
+}
+
+// TestRoutesPerIPLimit checks the limit through the real router.
+func TestRoutesPerIPLimit(t *testing.T) {
+	router := newRouter(&app{source: &fakeSource{}})
+
+	get := func(path, remoteAddr string) *httptest.ResponseRecorder {
+		req := httptest.NewRequest(http.MethodGet, path, nil)
+		req.RemoteAddr = remoteAddr
+		rec := httptest.NewRecorder()
+		router.ServeHTTP(rec, req)
+		return rec
+	}
+
+	// Search and title pages share one allowance.
+	for i := range perIPBurst {
+		path := "/api/search?q=x"
+		if i%2 == 1 {
+			path = "/api/manga/1"
+		}
+		if rec := get(path, "192.0.2.1:1000"); rec.Code != http.StatusOK {
+			t.Fatalf("request %d: status %d, want 200", i+1, rec.Code)
+		}
+	}
+
+	rec := get("/api/manga/1", "192.0.2.1:1000")
+	assertJSON(t, rec, http.StatusTooManyRequests, `{"error":"too many requests, try again shortly"}`)
+	if got := rec.Header().Get("Retry-After"); got != "2" {
+		t.Errorf("Retry-After = %q, want \"2\"", got)
+	}
+	if got := rec.Header().Get("Cache-Control"); got != "no-store" {
+		t.Errorf("Cache-Control = %q, want no-store", got)
+	}
+
+	// Health checks are never limited, and other visitors are unaffected.
+	if rec := get("/api/health", "192.0.2.1:1000"); rec.Code != http.StatusOK {
+		t.Errorf("health check status %d, want 200", rec.Code)
+	}
+	if rec := get("/api/search?q=x", "192.0.2.2:1000"); rec.Code != http.StatusOK {
+		t.Errorf("other visitor status %d, want 200", rec.Code)
 	}
 }
