@@ -687,7 +687,7 @@ body.search-open .volume-float {
 /* The small SANKOMANGA wordmark at the top of the results, title and 404
    pages, linking home: the home page's name, shrunk to 17px. SANKO in
    solid white, MANGA as a white outline, like the big one. On hover or
-   keyboard focus, MANGA's hollow letters fill in with a faint grey. */
+   keyboard focus, MANGA's outline glows. */
 .mini-wordmark {
   display: inline-flex;
   align-items: center;
@@ -709,12 +709,17 @@ body.search-open .volume-float {
   color: var(--bg);
   -webkit-text-stroke: 2px var(--text);
   paint-order: stroke fill;
-  transition: color 0.2s;
+  transition: filter 0.25s var(--ease);
 }
 
+/* The glow: two soft white haloes that follow the outline (drop-shadow
+   traces the drawn letters, not a box), a tight bright one and a wider,
+   fainter one. The letters stay hollow. */
 .mini-wordmark:hover .mini-wordmark-dim,
 .mini-wordmark:focus-visible .mini-wordmark-dim {
-  color: var(--text-faint);
+  filter:
+    drop-shadow(0 0 3px rgba(255, 255, 255, 0.9))
+    drop-shadow(0 0 10px rgba(255, 255, 255, 0.55));
 }
 
 .mini-wordmark:focus-visible {
