@@ -28,7 +28,7 @@ gofmt -l . && go vet ./... && go test -race ./...
 
 ## Docs
 
-- [Design](docs/design.md): every design decision
+- [Design](docs/design.md): how it looks and why
 - [API](docs/api-contract.md): endpoints and responses
 - [Deploying](docs/deploying.md): hosting, settings and AniList's terms
 
