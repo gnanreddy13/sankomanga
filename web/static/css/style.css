@@ -565,8 +565,9 @@ body.search-open .volume-float {
 }
 
 /* The cover. Shows its own colour (dimmed) until the image has loaded
-   and faded in. Rounded like the result cards (6px), with a strong white
-   glow: a bright halo close around the cover, fading into a wider haze. */
+   and faded in. Rounded like the result cards (6px), with a white glow:
+   a halo close around the cover, fading into a wider haze, about as
+   bright as the title page cover's. */
 .volume-cover {
   position: relative;
   aspect-ratio: 7 / 10; /* AniList covers are roughly this shape */
@@ -575,8 +576,8 @@ body.search-open .volume-float {
   background-color: color-mix(in srgb, var(--card-color, #2a2a30) 25%, #0b0b0d);
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.08),
-    0 0 24px -2px rgba(255, 255, 255, 0.35),
-    0 0 72px 4px rgba(255, 255, 255, 0.22);
+    0 0 24px -2px rgba(255, 255, 255, 0.27),
+    0 0 64px 2px rgba(255, 255, 255, 0.16);
 }
 
 /* The cover image. Each new cover is laid on top of the old one and fades
