@@ -323,7 +323,7 @@ body {
   align-items: center;
   justify-content: center;
   gap: 20px; /* space between the tagline and the search hint */
-  width: min(320px, calc(100% - 32px));
+  width: min(960px, calc(100% - 32px));
   margin: 0 auto;
   text-align: center;
 }
@@ -334,6 +334,117 @@ body {
   font-weight: 600;
   line-height: 1.1;
   letter-spacing: -0.03em;
+}
+
+/* On the home page the name is the big wordmark, in extra-heavy
+   capitals: capitals are all full height with straight sides, so each
+   letter of MANGA is a big window for the art. 96px on wider screens;
+   on phones, as big as fits the width (about 45px). Always one line.
+   The name itself stays lowercase everywhere else. */
+.home .brand-name {
+  font-size: min(6rem, 12vw);
+  white-space: nowrap;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+
+/* SANKO and サンコー take turns in the same spot (home.js adds and removes
+   .is-japanese): sound by sound, left to right, SA becomes サ, N becomes
+   ン and KO becomes コー. Each sound leaving drifts up, blurs and fades,
+   while its katakana settles in from below.
+
+   Both versions sit in the same grid cell, so the spot is always as wide
+   as the wider of the two and MANGA never shifts sideways; each is lined
+   up against MANGA (justify-self: end) and on the same baseline. */
+.wordmark-swap {
+  display: inline-grid;
+  align-items: baseline;
+}
+
+.wordmark-latin,
+.wordmark-japanese {
+  grid-area: 1 / 1;
+  justify-self: end;
+}
+
+/* One sound. home.js numbers them (--sound: 0, 1, 2), and each starts
+   130ms after the one before, which makes the left-to-right ripple.
+   inline-block lets each sound move on its own. */
+.wordmark-latin > span,
+.wordmark-japanese > span {
+  display: inline-block;
+  transition:
+    opacity 0.7s var(--ease),
+    transform 0.7s var(--ease),
+    filter 0.7s var(--ease);
+  transition-delay: calc(var(--sound, 0) * 130ms);
+}
+
+/* Katakana fill more of their line than capitals do, so they're set a
+   little smaller to look the same height as SANKO. The long-vowel bar ー
+   runs to the very edge of its space, so a small gap keeps it off MANGA. */
+.wordmark-japanese {
+  font-family: "Noto Sans JP", var(--font);
+  font-size: 0.84em;
+  letter-spacing: 0.02em;
+  margin-right: 0.1em;
+}
+
+/* Waiting below, out of sight, until it's the Japanese name's turn. */
+.wordmark-japanese > span {
+  opacity: 0;
+  transform: translateY(0.18em);
+  filter: blur(6px);
+}
+
+.wordmark-swap.is-japanese .wordmark-latin > span {
+  opacity: 0;
+  transform: translateY(-0.18em);
+  filter: blur(6px);
+}
+
+.wordmark-swap.is-japanese .wordmark-japanese > span {
+  opacity: 1;
+  transform: none;
+  filter: none;
+}
+
+/* MANGA. When the art image (web/static/img/manga-art.png) exists,
+   home.js shows that image in place of these letters: the word MANGA
+   drawn with black-and-white manga art inside each letter, on a
+   transparent background (see .wordmark-art-image).
+
+   Until then, the letters show a calm stand-in: outlined, and filled
+   with fine screentone dots, like a lightly toned title in a manga.
+   (background-clip: text paints the dots only inside the letters.) */
+.wordmark-art {
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.55);
+  background: radial-gradient(#f4f4f5 0.9px, transparent 1.2px) 0 0 / 4px 4px;
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+/* The art image. As tall as the capitals (Inter's capitals are about
+   0.73 of the font size) and sitting on the same baseline, so it reads
+   as part of the name. The image is cropped tightly to its letters.
+
+   The art's own letter outlines are black, which vanishes on the black
+   page, so four 1px white shadows (right, left, down, up) trace a thin
+   white outline around the letter shapes instead. drop-shadow follows
+   the image's transparency, not its rectangle. */
+.wordmark-art-image {
+  height: 0.73em;
+  width: auto;
+  margin-left: 0.04em;
+  vertical-align: baseline;
+  filter:
+    drop-shadow(1px 0 0 #f4f4f5)
+    drop-shadow(-1px 0 0 #f4f4f5)
+    drop-shadow(0 1px 0 #f4f4f5)
+    drop-shadow(0 -1px 0 #f4f4f5);
 }
 
 .brand-tagline {
@@ -705,7 +816,7 @@ body {
 
 /* =============================================================
    Title page (/manga/{id})
-   A centred block: "< manga-app" lined up with its left edge,
+   A centred block: "< sankomanga" lined up with its left edge,
    then the cover with the details beside it (stacked on phones).
    ============================================================= */
 .title-page {
@@ -1127,7 +1238,9 @@ body.search-open {
   }
 
   .cover-row,
-  .row-cover img {
+  .row-cover img,
+  .wordmark-latin > span,
+  .wordmark-japanese > span {
     transition: none;
   }
 

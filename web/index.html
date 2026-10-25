@@ -15,9 +15,10 @@
        connection early so the font arrives sooner. -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <!-- "ital,wght@0,…;1,400" = regular 400/500/600 plus a real italic 400
-       (for the tagline), so the browser doesn't fake italics by slanting. -->
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+  <!-- "ital,wght@0,…;1,400" = regular 400/500/600, the extra-heavy 900
+       (for the big name on the home page), plus a real italic 400 (for the
+       tagline), so the browser doesn't fake italics by slanting. -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,900;1,400&display=swap">
 
   <link rel="stylesheet" href="/static/css/style.css">
 
@@ -40,6 +41,8 @@
          .search-overlay below and search-overlay.js). -->
     <div class="home-intro">
       <div class="brand">
+        <!-- home.js turns the name into the wordmark: SANKO in white
+             (taking turns with サンコー), then MANGA as manga art. -->
         <h1 class="brand-name" data-app-name></h1>
         <p class="brand-tagline" data-tagline></p>
       </div>

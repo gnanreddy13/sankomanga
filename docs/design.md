@@ -25,8 +25,9 @@ bottom.
 | Background | Pure black (`#000`). |
 | Small text | The faintest grey is `#77777f` (4.7:1 contrast on black, above the 4.5:1 small text needs). Never darker. |
 | Size | Everything kept small and quiet. |
-| Covers (top and bottom) | Two rows of popular covers (from `/api/showcase`: the 30 most popular, ecchi excluded). To keep the page light, each cover's image downloads only when the cover glides within 300px of the screen (about 18 at first, then one every few seconds), and the browser picks the size: 230px-wide images on ordinary screens, 460px on sharp "Retina" screens. Each row gets its own 15, so every cover on the screen is different (only screens wider than about 3,000px would repeat a cover within a row). Each cover has a soft white glow behind it, the same for every cover (like the results and title page glows). Each row glides endlessly and slowly (22px a second): the top one to the left, the bottom one to the right. Covers are about 280px tall on a laptop (at most 30% of the screen height), 200px on phones (at most 26%), with 14px gaps (10px on phones) and 8px rounded corners. Both ends of each row fade softly into the black. Purely decorative: no hover or click. |
-| Name (middle) | The app name and tagline, then a quiet hint 20px below, then the "Data from [AniList logo]" credit 20px below that, all centred between the rows. The home page has no footer; the other pages keep theirs. No search bar on the page. (A short hairline rule under the tagline was tried and removed.) |
+| Covers (top and bottom) | Two rows of popular covers (from `/api/showcase`: the 30 most popular, ecchi excluded, shuffled on every visit). To keep the page light, each cover's image downloads only when the cover glides within 300px of the screen (about 18 at first, then one every few seconds), and the browser picks the size: 230px-wide images on ordinary screens, 460px on sharp "Retina" screens. Each row gets its own 15, so every cover on the screen is different (only screens wider than about 3,000px would repeat a cover within a row). Each cover has a soft white glow behind it, the same for every cover (like the results and title page glows). Each row glides endlessly and slowly (22px a second): the top one to the left, the bottom one to the right. Covers are about 280px tall on a laptop (at most 30% of the screen height), 200px on phones (at most 26%), with 14px gaps (10px on phones) and 8px rounded corners. Both ends of each row fade softly into the black. Purely decorative: no hover or click. |
+| Wordmark (middle) | On one line. The name in Inter 900 capitals (96px; on phones as big as fits, about 45px): SANKO in plain white, taking turns with サンコー (the Japanese touch; it reads "sankō", like 参考, "reference"; extra-heavy Noto Sans JP, set a little smaller to match the capitals' height, only its four characters downloaded). The swap goes sound by sound, left to right, each 130ms after the one before: SA becomes サ, N becomes ン, KO becomes コー, so the name visibly translates itself (`NAME_SOUNDS` in `config.js`). Each sound leaving drifts up, blurs and fades while its katakana settles in from below (0.7s). SANKO shows for 6 seconds (including before the first swap, so people read it first), サンコー for 3: the English name is the one people need to remember. Both share one spot, as wide as the wider of the two, so MANGA never moves. With "reduce motion" on, it stays SANKO; swapping pauses while the tab is hidden. Then MANGA as art: an image of the word with black-and-white manga art inside each letter (`web/static/img/manga-art.png`, transparent around the letters, cropped tight to them), as tall as the capitals and on the same baseline, with a thin white outline traced around the letters (their own black outlines vanish on black). It appears only once fully loaded. Without the image, MANGA shows as outlined capitals filled with fine white screentone dots. The art must be original before the site goes public (no existing series' characters); the current file is a private preview and is git-ignored. Screen readers hear just "sankomanga"; the katakana is decoration. Other pages keep the plain lowercase name. |
+| Below the wordmark | The tagline, then a quiet hint 20px below, then the "Data from [AniList logo]" credit 20px below that, all centred between the rows. The home page has no footer; the other pages keep theirs. No search bar on the page. (A short hairline rule under the tagline was tried and removed.) |
 | Tagline | Italic, muted grey. |
 | Search hint | Small faint text that's also a real button: "Type to search" on devices with a keyboard and mouse, "Tap anywhere to search" on touch screens. |
 | Search overlay | The search box opens on top of the page, which is dimmed and blurred. It opens by typing any letter (that letter starts the search), "/", clicking or tapping anywhere (except links), or the hint. It sits in the middle of the screen, where the name is (just clear of phone keyboards), in a bigger version of the underline style. Closes with Esc (the first Esc clears any text), a click/tap outside, or the browser's back button/gesture (it adds one history step while open; searching replaces that step, so "back" from the results goes straight home). Tab stays inside the box while open. |
@@ -34,8 +35,13 @@ bottom.
 | Motion | With "reduce motion" on: still rows, no entrance animation. Gliding pauses while the tab is hidden. |
 | Loading / failure | Search (the overlay) works immediately; the rows fade in once the list arrives, and each cover shows its own colour until its image loads. If the covers can't load, the rows simply stay empty. |
 
-App name: placeholder `manga-app`. Tagline: "explore your next manga".
-Both live in one place each (`web/static/js/config.js`). Logo: not decided yet.
+App name: **sankomanga** (the domain will be English too). Tagline: "explore
+your next manga". Both live in one place each (`web/static/js/config.js`,
+plus `appName` in `config.go` for the backend), as do the art-filled word
+(`ART_WORD`) and the Japanese name (`JAPANESE_NAME`). The name is written
+lowercase everywhere except the home page wordmark, which is set in capitals
+(a logo can be styled differently from the name in text). Logo: the home
+page wordmark for now.
 
 Tried and dropped for the home page (kept here so we don't repeat them):
 - A box around the content.
@@ -51,6 +57,15 @@ Tried and dropped for the home page (kept here so we don't repeat them):
 - A fan of 7 covers rising from the bottom edge, breathing and swapping one
   cover every 4 seconds, with a glow in the newest cover's colour (replaced
   by the two gliding rows).
+- A different cover inside each letter of "manga" (lowercase): colourful
+  covers in small lowercase letters looked busy; replaced by black-and-white
+  manga art in capital MANGA.
+- SANKO and サンコー crossfading as whole words, 4 seconds each: smooth but
+  generic; replaced by the sound-by-sound swap.
+- サンコー as a huge, very dark watermark behind the name (replaced by
+  SANKO and サンコー taking turns in the name itself).
+- A manga page texture drawn in CSS inside MANGA (screentone, speed lines,
+  hatching, panel gutters): at this size it read as stripes, like a glitch.
 
 ## Results screen
 
@@ -95,7 +110,7 @@ added by the result cards), or home when there was no search.
 | Genres | Small outlined grey pills. Not clickable (yet). |
 | Synopsis | Our cleaned paragraphs, 15px, light grey, line height 1.7, at most ~60 characters a line. Notes look like any other paragraph. |
 | AniList link | "View on AniList ↗" under the synopsis, small and grey, opens in a new tab. |
-| Browser tab | "Shingeki no Kyojin · manga-app". |
+| Browser tab | "Shingeki no Kyojin · sankomanga". |
 | Loading | Shimmering cover placeholder and faint bars for the text. |
 | Status words | AniList's RELEASING is shown as "Ongoing" everywhere (cards and title page): clearer than "Releasing". |
 | Not found | For unknown or filtered ids (and non-numeric ones): "This title isn't available here. Search for another" (links home). |

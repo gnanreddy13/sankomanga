@@ -1,7 +1,11 @@
-// The home page: fills in the name and tagline, fills two rows of popular
-// covers (from /api/showcase, a different half in each row) that glide
-// slowly across the top and bottom of the screen in opposite directions, and sets up the search box that
-// opens on top of the page (search-overlay.js).
+// The home page: builds the big wordmark (SANKO in white, taking turns
+// with サンコー, then MANGA as black-and-white manga art), fills two rows of popular covers (from
+// /api/showcase) that glide slowly across the top and bottom of the screen
+// in opposite directions, and sets up the search box that opens on top of
+// the page (search-overlay.js).
+//
+// The covers are shuffled on every visit, and each row gets its own half,
+// so every cover on the page is different.
 //
 // The gliding itself is CSS (.cover-track in style.css); this file only
 // builds the rows and sets their speed.
@@ -11,7 +15,22 @@
 // browser picks the image size that fits the screen (see loadImage).
 
 import { fillBranding } from "./common.js";
+import { APP_NAME, ART_WORD, JAPANESE_NAME, NAME_SOUNDS } from "./config.js";
 import { setUpSearchOverlay } from "./search-overlay.js";
+
+// The wordmark art: an image of ART_WORD with manga art inside its
+// letters, on a transparent background. If it doesn't exist, the word is
+// shown as styled text instead (see .wordmark-art in style.css).
+const WORDMARK_ART = "/static/img/manga-art.png";
+
+// How long each version of the name stays before swapping: the English
+// one longer, since that's the name people need to remember and type.
+// The first swap waits the full LATIN_SHOWN_MS, so people read the name
+// before anything moves.
+const LATIN_SHOWN_MS = 6000;
+const JAPANESE_SHOWN_MS = 3000;
+
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 // How fast the rows glide, in pixels per second: slow enough to read as
 // calm background movement rather than something to follow.
@@ -30,14 +49,146 @@ const topRow = document.querySelector(".cover-row--top");
 const bottomRow = document.querySelector(".cover-row--bottom");
 
 fillBranding();
+buildWordmark();
+loadJapaneseFont();
 setUpSearchOverlay();
-loadRows();
+loadCovers();
 pauseWhileHidden();
 
-// loadRows fetches the covers and fills both rows. The search works the
+// --- The wordmark ----------------------------------------------------------
+
+// buildWordmark splits the name in the heading into two parts: the start
+// ("sanko") stays plain white and takes turns with JAPANESE_NAME
+// (サンコー), and ART_WORD at the end ("manga") becomes the art: the image
+// once it has loaded, the styled text until then (or for good, if there's
+// no image). The CSS shows the wordmark in capitals.
+//
+// Screen readers might read a name split into parts oddly, so the visible
+// wordmark is hidden from them and the plain name is read instead.
+function buildWordmark() {
+  const heading = document.querySelector(".brand-name");
+  const hasArtWord = ART_WORD !== "" && APP_NAME.endsWith(ART_WORD);
+  const plainPart = hasArtWord ? APP_NAME.slice(0, -ART_WORD.length) : APP_NAME;
+
+  const forScreenReaders = document.createElement("span");
+  forScreenReaders.className = "visually-hidden";
+  forScreenReaders.textContent = APP_NAME;
+
+  const visible = document.createElement("span");
+  visible.setAttribute("aria-hidden", "true");
+  visible.append(createNameSwap(plainPart));
+
+  if (hasArtWord) {
+    const artPart = document.createElement("span");
+    artPart.className = "wordmark-art";
+    artPart.textContent = ART_WORD;
+    visible.append(artPart);
+    showArtWhenLoaded(artPart);
+  }
+
+  heading.replaceChildren(forScreenReaders, visible);
+}
+
+// showArtWhenLoaded swaps the styled word for the art image, but only once
+// the image has fully downloaded, so the name never shows half-drawn. If
+// the image is missing, the styled word simply stays.
+function showArtWhenLoaded(artPart) {
+  const image = new Image();
+  image.className = "wordmark-art-image";
+  image.alt = ""; // the heading's hidden text already says the name
+  image.addEventListener("load", () => artPart.replaceWith(image), { once: true });
+  image.src = WORDMARK_ART;
+}
+
+// createNameSwap builds the spot where the start of the name ("sanko")
+// and its Japanese spelling take turns: both are there, one on top of the
+// other, and the CSS shows one at a time.
+//
+// Each version is split into its sounds (NAME_SOUNDS), one element per
+// sound, numbered with --sound. The CSS staggers the swap by that number,
+// so the sounds change one after another, left to right: SA → サ, N → ン,
+// KO → コー.
+function createNameSwap(latinName) {
+  const swap = document.createElement("span");
+  swap.className = "wordmark-swap";
+
+  // The sounds must spell the start of the name; if they don't (say the
+  // name changed but the sounds didn't), swap the whole word at once.
+  const spellsName = NAME_SOUNDS.map(([latin]) => latin).join("") === latinName;
+  const sounds = spellsName ? NAME_SOUNDS : [[latinName, JAPANESE_NAME]];
+
+  const latin = document.createElement("span");
+  latin.className = "wordmark-latin";
+  const japanese = document.createElement("span");
+  japanese.className = "wordmark-japanese";
+
+  sounds.forEach(([latinSound, katakana], index) => {
+    latin.append(createSound(latinSound, index));
+    japanese.append(createSound(katakana, index));
+  });
+
+  swap.append(latin, japanese);
+
+  if (!reduceMotion && JAPANESE_NAME !== "") {
+    takeTurns(swap);
+  }
+  return swap;
+}
+
+// createSound builds one sound of the name, numbered for the stagger.
+function createSound(text, index) {
+  const sound = document.createElement("span");
+  sound.textContent = text;
+  sound.style.setProperty("--sound", String(index));
+  return sound;
+}
+
+// takeTurns swaps the two versions of the name back and forth: the
+// English one for LATIN_SHOWN_MS, then the Japanese one for
+// JAPANESE_SHOWN_MS, and so on. While the tab is hidden it just waits
+// (nobody would see the swap).
+function takeTurns(swap) {
+  const showingJapanese = swap.classList.contains("is-japanese");
+  const wait = showingJapanese ? JAPANESE_SHOWN_MS : LATIN_SHOWN_MS;
+
+  setTimeout(() => {
+    if (!document.hidden) {
+      swap.classList.toggle("is-japanese");
+    }
+    takeTurns(swap);
+  }, wait);
+}
+
+// loadJapaneseFont loads the font for JAPANESE_NAME (Noto Sans JP, extra
+// heavy) from Google Fonts. "text=" asks for just the few characters we
+// use, so the download is tiny instead of a whole Japanese font. Until it
+// arrives, the device's own Japanese font is used.
+function loadJapaneseFont() {
+  const font = document.createElement("link");
+  font.rel = "stylesheet";
+  font.href =
+    "https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@900" +
+    `&text=${encodeURIComponent(JAPANESE_NAME)}&display=swap`;
+  document.head.append(font);
+}
+
+// shuffled returns a copy of the list in random order (the Fisher-Yates
+// shuffle: every order is equally likely).
+function shuffled(list) {
+  const copy = [...list];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
+// --- The rows of covers ----------------------------------------------------
+
+// loadCovers fetches the covers and fills both rows. The search works the
 // whole time; the rows fade in once they're ready. If anything goes wrong,
 // the rows simply stay empty (only decoration is missing).
-async function loadRows() {
+async function loadCovers() {
   try {
     const response = await fetch("/api/showcase");
     if (!response.ok) {
@@ -48,11 +199,13 @@ async function loadRows() {
       throw new Error("showcase has no covers");
     }
 
-    // Each row gets its own half of the list, so every cover on the
-    // screen is different. (With a single cover, both rows share it.)
-    const half = Math.ceil(covers.length / 2);
-    fillRow(topRow, covers.slice(0, half));
-    fillRow(bottomRow, covers.slice(half).length > 0 ? covers.slice(half) : covers);
+    // A different mix on every visit, and each row gets its own half of
+    // the list, so every cover on the screen is different. (With a single
+    // cover, both rows share it.)
+    const mixed = shuffled(covers);
+    const half = Math.ceil(mixed.length / 2);
+    fillRow(topRow, mixed.slice(0, half));
+    fillRow(bottomRow, mixed.length > 1 ? mixed.slice(half) : mixed);
   } catch (error) {
     console.warn("Cover rows unavailable:", error);
   }

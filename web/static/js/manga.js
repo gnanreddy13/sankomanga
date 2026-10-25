@@ -54,7 +54,7 @@ async function loadTitle(id) {
 // Parts that are missing (no subtitle, no score...) are left empty, and
 // the CSS hides empty parts, so nothing ever shows as blank or "—".
 function renderTitle(manga) {
-  fillBranding(manga.title); // browser tab: "Shingeki no Kyojin · manga-app"
+  fillBranding(manga.title); // browser tab: "Shingeki no Kyojin · sankomanga"
 
   renderCover(manga);
   article.querySelector(".title-name").textContent = manga.title;

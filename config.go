@@ -2,9 +2,9 @@ package main
 
 import "os"
 
-// appName is a placeholder until the real name is decided.
-// It is the only place the backend spells out the app's name.
-const appName = "manga-app"
+// appName is the app's name. It is the only place the backend spells it
+// out (the frontend has its own, APP_NAME in web/static/js/config.js).
+const appName = "sankomanga"
 
 // defaultPort is used when the PORT environment variable is not set.
 const defaultPort = "8080"
