@@ -20,7 +20,9 @@ func newRouter(a *app) http.Handler {
 	// CSS, JavaScript, and other files: /static/css/style.css is the file
 	// web/static/css/style.css.
 	mux.HandleFunc("GET /static/", serveStatic(site))
-	mux.HandleFunc("GET /favicon.ico", serveFavicon(site))
+	mux.HandleFunc("GET /favicon.ico", serveImage(site, "favicon.svg", "image/svg+xml"))
+	mux.HandleFunc("GET /apple-touch-icon.png", serveImage(site, "apple-touch-icon.png", "image/png"))
+	mux.HandleFunc("GET /og-image.png", serveImage(site, "og-image.png", "image/png"))
 	// "/" matches every address no other route claims: answer those with
 	// the styled "Page not found" page.
 	mux.HandleFunc("/", serveNotFoundPage(site))

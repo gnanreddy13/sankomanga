@@ -5,10 +5,28 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#000000">
   <meta name="description" content="Search results for Japanese manga.">
-  <!-- The real title is filled in by search.js. -->
-  <title></title>
+  <!-- The full title is filled in by search.js; the name here is for
+       apps that don't run JavaScript. -->
+  <title>{{APP_NAME}}</title>
 
   <link rel="icon" href="/favicon.ico" type="image/svg+xml">
+
+  <!-- The icon an iPhone uses when the site is added to the home screen. -->
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+
+  <!-- Link previews: what chat apps and social sites show when someone
+       shares a link to the site. Those apps don't run JavaScript, so the
+       Go server fills in the name and the site's address where the double
+       braces are (see fillPlaceholders in web.go). -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="{{APP_NAME}}">
+  <meta property="og:title" content="{{APP_NAME}}">
+  <meta property="og:description" content="Look up Japanese manga: search a title and see the key facts at a glance.">
+  <meta property="og:image" content="{{SITE_URL}}/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="The {{APP_NAME}} wordmark: explore your next manga">
+  <meta name="twitter:card" content="summary_large_image">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -26,7 +44,7 @@
          search again), then the count. -->
     <header class="results-header">
       <!-- common.js turns this into the two-tone wordmark. -->
-      <a class="mini-wordmark" href="/" data-mini-wordmark>sankomanga</a>
+      <a class="mini-wordmark" href="/" data-mini-wordmark>{{APP_NAME}}</a>
 
       <form class="search search--line search--small" action="/search" method="get" role="search">
         <label class="visually-hidden" for="search-input">Search manga</label>

@@ -5,10 +5,28 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#000000">
   <meta name="description" content="Key facts about a Japanese manga.">
-  <!-- The real title is filled in by manga.js. -->
-  <title></title>
+  <!-- The full title is filled in by manga.js; the name here is for
+       apps that don't run JavaScript. -->
+  <title>{{APP_NAME}}</title>
 
   <link rel="icon" href="/favicon.ico" type="image/svg+xml">
+
+  <!-- The icon an iPhone uses when the site is added to the home screen. -->
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+
+  <!-- Link previews: what chat apps and social sites show when someone
+       shares a link to the site. Those apps don't run JavaScript, so the
+       Go server fills in the name and the site's address where the double
+       braces are (see fillPlaceholders in web.go). -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="{{APP_NAME}}">
+  <meta property="og:title" content="{{APP_NAME}}">
+  <meta property="og:description" content="Look up Japanese manga: search a title and see the key facts at a glance.">
+  <meta property="og:image" content="{{SITE_URL}}/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="The {{APP_NAME}} wordmark: explore your next manga">
+  <meta name="twitter:card" content="summary_large_image">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -26,7 +44,7 @@
          title came from; manga.js sets where it goes, home if there was
          no search). -->
     <header class="title-header">
-      <a class="mini-wordmark" href="/" data-mini-wordmark>sankomanga</a>
+      <a class="mini-wordmark" href="/" data-mini-wordmark>{{APP_NAME}}</a>
       <a class="icon-link back-to-results" href="/" aria-label="Back to search results" title="Back to search results">
         <span>back to</span>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">

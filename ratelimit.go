@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/netip"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
@@ -119,6 +120,11 @@ type ipLimiter struct {
 	maxVisitors int
 	lastCleanup time.Time
 
+	// proxyHeader is the header holding each visitor's real address when
+	// the app runs behind a hosting provider's proxy ("" when it doesn't;
+	// see trustedProxyHeader in config.go).
+	proxyHeader string
+
 	// now is replaceable so tests can control time.
 	now func() time.Time
 }
@@ -134,6 +140,7 @@ func newIPLimiter() *ipLimiter {
 		visitors:    make(map[string]*visitor),
 		maxVisitors: maxTrackedIPs,
 		lastCleanup: time.Now(),
+		proxyHeader: trustedProxyHeader(),
 		now:         time.Now,
 	}
 }
@@ -186,7 +193,7 @@ func (l *ipLimiter) forgetIdle(now time.Time) {
 // per-IP rate. Visitors over the limit get 429 with a Retry-After header.
 func limitPerIP(limiter *ipLimiter, next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		ok, wait := limiter.allow(clientKey(r))
+		ok, wait := limiter.allow(clientKey(r, limiter.proxyHeader))
 		if !ok {
 			w.Header().Set("Retry-After", strconv.Itoa(retryAfterSeconds(wait)))
 			writeError(w, http.StatusTooManyRequests, "too many requests, try again shortly")
@@ -202,18 +209,8 @@ func limitPerIP(limiter *ipLimiter, next http.HandlerFunc) http.HandlerFunc {
 // their first half (the "/64"): a single home connection is usually given
 // a whole /64 block (billions of billions of addresses), so limiting each
 // IPv6 address separately would be trivial to get around.
-//
-// IMPORTANT before deploying: r.RemoteAddr is whoever connected to us
-// directly. Behind a hosting provider's proxy or load balancer, that's
-// the proxy, so every visitor would share one limit. We'll then need to
-// read the visitor's address from the X-Forwarded-For header, but only
-// when the request really came from that trusted proxy, since anyone
-// can send a fake X-Forwarded-For header.
-func clientKey(r *http.Request) string {
-	host, _, err := net.SplitHostPort(r.RemoteAddr) // "1.2.3.4:5678" -> "1.2.3.4"
-	if err != nil {
-		host = r.RemoteAddr
-	}
+func clientKey(r *http.Request, proxyHeader string) string {
+	host := clientAddress(r, proxyHeader)
 
 	addr, err := netip.ParseAddr(host)
 	if err != nil {
@@ -230,4 +227,31 @@ func clientKey(r *http.Request) string {
 		}
 	}
 	return addr.String()
+}
+
+// clientAddress returns the address a request comes from.
+//
+// Behind a hosting provider's proxy (proxyHeader set), that's the address
+// the proxy writes into proxyHeader. A header like X-Forwarded-For can
+// list several addresses ("visitor, proxy1, proxy2"); the first is the
+// visitor. If the header is missing or doesn't hold a valid address, it
+// falls back to the connection's own address, so a request is never left
+// without one.
+//
+// Otherwise (proxyHeader empty, e.g. when running locally) it's simply
+// the address of whoever connected: r.RemoteAddr.
+func clientAddress(r *http.Request, proxyHeader string) string {
+	if proxyHeader != "" {
+		first, _, _ := strings.Cut(r.Header.Get(proxyHeader), ",")
+		first = strings.TrimSpace(first)
+		if _, err := netip.ParseAddr(first); err == nil {
+			return first
+		}
+	}
+
+	host, _, err := net.SplitHostPort(r.RemoteAddr) // "1.2.3.4:5678" -> "1.2.3.4"
+	if err != nil {
+		return r.RemoteAddr
+	}
+	return host
 }

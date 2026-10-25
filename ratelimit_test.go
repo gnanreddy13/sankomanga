@@ -196,9 +196,54 @@ func TestClientKey(t *testing.T) {
 	for _, tt := range tests {
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		req.RemoteAddr = tt.remoteAddr
-		if got := clientKey(req); got != tt.want {
+		if got := clientKey(req, ""); got != tt.want {
 			t.Errorf("clientKey(%q) = %q, want %q", tt.remoteAddr, got, tt.want)
 		}
+	}
+}
+
+// TestClientKeyBehindProxy checks that, behind a proxy, visitors are told
+// apart by the address in the proxy's header, not by the proxy's own
+// address (which every request shares).
+func TestClientKeyBehindProxy(t *testing.T) {
+	const proxy = "10.0.0.1:5000" // every request arrives from the proxy
+
+	tests := []struct {
+		name   string
+		header string
+		want   string
+	}{
+		{"visitor's address", "203.0.113.7", "203.0.113.7"},
+		{"first of a list is the visitor", "203.0.113.7, 10.0.0.2", "203.0.113.7"},
+		{"spaces are ignored", "  203.0.113.7 ", "203.0.113.7"},
+		{"IPv6 grouped by /64 as usual", "2001:db8:1:2::5", "2001:db8:1:2::/64"},
+		// Missing or nonsense values fall back to the connection's address.
+		{"header missing", "", "10.0.0.1"},
+		{"not an address", "hello", "10.0.0.1"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodGet, "/", nil)
+			req.RemoteAddr = proxy
+			if tt.header != "" {
+				req.Header.Set("X-Real-IP", tt.header)
+			}
+			if got := clientKey(req, "X-Real-IP"); got != tt.want {
+				t.Errorf("clientKey = %q, want %q", got, tt.want)
+			}
+		})
+	}
+}
+
+// TestClientKeyIgnoresHeaderWithoutProxy checks that when no proxy header
+// is configured (running locally, or a host without a proxy), a made-up
+// header can't change who a visitor counts as.
+func TestClientKeyIgnoresHeaderWithoutProxy(t *testing.T) {
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req.RemoteAddr = "192.0.2.1:1234"
+	req.Header.Set("X-Real-IP", "203.0.113.7")
+	if got := clientKey(req, ""); got != "192.0.2.1" {
+		t.Errorf("clientKey = %q, want the connection's address 192.0.2.1", got)
 	}
 }
 

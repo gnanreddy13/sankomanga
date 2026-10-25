@@ -42,6 +42,41 @@ To build a single program file you can run anywhere:
 go build -o sankomanga .
 ```
 
+## Deploying (Railway)
+
+sankomanga is one Go program with the website built in, so any host that
+can run Go works. These steps are for [Railway](https://railway.com).
+
+1. **Put the code on GitHub.** A private repository is fine.
+2. **Create the service.** On Railway: New Project → Deploy from GitHub
+   repo → pick the repository. Railway sees `go.mod`, builds the program
+   and starts it. It also sets `PORT` itself, which the app already reads.
+3. **Set two variables** (the service's Variables tab):
+
+   | Variable | Value | Why |
+   |---|---|---|
+   | `TRUSTED_PROXY_HEADER` | `X-Real-IP` | Railway's proxy passes each visitor's address in this header. Without it, every visitor looks like the proxy and they'd all share one rate limit. |
+   | `SITE_URL` | `https://your-domain` | Only with your own domain. Without it, link previews use Railway's address automatically (`RAILWAY_PUBLIC_DOMAIN`). |
+
+4. **Check two settings** (the service's Settings tab):
+   - **Replicas: 1.** The AniList rate limit is counted inside the program, so
+     there must be exactly one copy. (1 is Railway's default.)
+   - **Healthcheck path: `/api/health`.** Railway then only switches to a new
+     version once it answers, so a broken deploy never replaces a working one.
+5. **Get an address.** Settings → Networking → Generate Domain (or add your
+   own domain there, then set `SITE_URL`).
+
+After that, every push to GitHub deploys a new version.
+
+**After the first deploy, check:**
+
+- `https://your-address/api/health` answers `{"status":"ok"}`.
+- The home page, a search and a title page work.
+- The rate limit tells visitors apart: from one computer, about 40 quick
+  searches in a row should get "You're going quite fast", while a phone on
+  mobile data can still search normally at the same moment.
+- A link preview shows the wordmark: paste the address into a chat app.
+
 ## Testing
 
 ```bash
@@ -79,7 +114,7 @@ novels) and excludes adult titles.
 | File | What it does |
 |---|---|
 | `main.go` | Starts the server, keeps the home covers ready, shuts down cleanly |
-| `config.go` | The app's name and the default port |
+| `config.go` | The app's name, the port, the site's public address, and the proxy header for visitors' addresses |
 | `routes.go` | Which address goes to which handler |
 | `handlers_public.go` | The API handlers |
 | `api_types.go` | The JSON the API sends |
@@ -88,8 +123,8 @@ novels) and excludes adult titles.
 | `cache.go` | Short-lived in-memory cache, with expiry and a size cap |
 | `ratelimit.go` | Limits for each visitor, and for our calls to AniList |
 | `middleware.go`, `compress.go`, `respond.go` | Logging, gzip, and shared response helpers |
-| `web.go` | Serves the pages, CSS, JavaScript and tab icon |
-| `web/` | The website: `index.html` (home), `search.html` (results), `manga.html` (title page), `404.html` |
+| `web.go` | Serves the pages (filling in the name and address for link previews), CSS, JavaScript and images, with ETags so repeat visits are cheap |
+| `web/` | The website: `index.html` (home), `search.html` (results), `manga.html` (title page), `404.html`, plus the tab icon, the iPhone home-screen icon and the link preview picture |
 | `web/static/js/config.js` | The frontend's name, tagline and wordmark settings |
 | `docs/design.md` | Every design decision, and what was tried and dropped |
 | `docs/api-contract.md` | The API contract |
