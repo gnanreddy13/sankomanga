@@ -425,7 +425,7 @@ body {
 }
 
 /* MANGA. When the art image (web/static/img/manga-art.png) exists,
-   home.js shows that image in place of these letters: the word MANGA
+   home.js shows that image instead of these letters: the word MANGA
    drawn with black-and-white manga art inside each letter, on a
    transparent background (see .wordmark-art-image).
 
@@ -460,16 +460,15 @@ body {
     drop-shadow(0 -1px 0 #f4f4f5);
 }
 
-/* When the art arrives after the page is already showing, it fades in
-   (over about the same time as the covers) instead of popping in. */
-.wordmark-art-image.is-fading-in {
-  animation: art-in 0.6s var(--ease) both;
+/* While the art downloads, its space is kept (home.js sets the image's
+   width and height) but left empty; then it fades in, over about the
+   same time as the covers. */
+.wordmark-art-image {
+  transition: opacity 0.6s var(--ease);
 }
 
-@keyframes art-in {
-  from {
-    opacity: 0;
-  }
+.wordmark-art-image.is-loading {
+  opacity: 0;
 }
 
 .brand-tagline {
@@ -1414,13 +1413,13 @@ body.search-open {
    ============================================================= */
 @media (prefers-reduced-motion: reduce) {
   .cover-track,
-  .home-intro > *,
-  .wordmark-art-image.is-fading-in {
+  .home-intro > * {
     animation: none;
   }
 
   .cover-row,
   .row-cover img,
+  .wordmark-art-image,
   .wordmark-latin > span,
   .wordmark-japanese > span {
     transition: none;

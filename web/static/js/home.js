@@ -21,7 +21,13 @@ import { setUpSearchOverlay } from "./search-overlay.js";
 // The wordmark art: an image of ART_WORD with manga art inside its
 // letters, on a transparent background. If it doesn't exist, the word is
 // shown as styled text instead (see .wordmark-art in style.css).
+//
+// Its size in pixels, so the page can keep exactly the right space for it
+// before it has downloaded (only the shape, width ÷ height, matters, not
+// the exact numbers). Update these whenever the image file changes.
 const WORDMARK_ART = "/static/img/manga-art.png";
+const WORDMARK_ART_WIDTH = 640;
+const WORDMARK_ART_HEIGHT = 166;
 
 // How long each version of the name stays before swapping: the English
 // one longer, since that's the name people need to remember and type.
@@ -91,37 +97,45 @@ function buildWordmark() {
   visible.append(createNameSwap(plainPart));
 
   if (hasArtWord) {
-    const artPart = document.createElement("span");
-    artPart.className = "wordmark-art";
-    artPart.textContent = ART_WORD;
-    visible.append(artPart);
-    showArtWhenLoaded(artPart);
+    visible.append(createArt());
   }
 
   heading.replaceChildren(forScreenReaders, visible);
 }
 
-// showArtWhenLoaded swaps the styled word for the art image, but only once
-// the image has fully downloaded, so the name never shows half-drawn. If
-// the image is missing, the styled word simply stays.
+// createArt builds the art image for ART_WORD. It goes into the name
+// straight away, with its width and height set, so the browser keeps
+// exactly the right space for it while it downloads: nothing around it
+// moves when it arrives. Until then it's invisible (.is-loading); then it
+// fades into its space. If the browser already has it, it's simply there.
 //
-// If the browser already has the image (a later visit), it's there from
-// the start. If it has to download it first, it fades in when it arrives
-// (.is-fading-in), so the switch from the styled word isn't a jump.
-function showArtWhenLoaded(artPart) {
-  const image = new Image();
-  image.className = "wordmark-art-image";
+// If the image is missing (say, a fresh copy of the project without the
+// art), the styled word takes its place. That's known within moments,
+// while the name is still rising into view.
+function createArt() {
+  const image = new Image(WORDMARK_ART_WIDTH, WORDMARK_ART_HEIGHT);
+  image.className = "wordmark-art-image is-loading";
   image.alt = ""; // the heading's hidden text already says the name
+  image.decoding = "async";
+
+  image.addEventListener("load", () => image.classList.remove("is-loading"), { once: true });
+  image.addEventListener("error", () => image.replaceWith(createStyledWord()), { once: true });
   image.src = WORDMARK_ART;
 
   if (image.complete && image.naturalWidth > 0) {
-    artPart.replaceWith(image);
-    return;
+    // Already downloaded on an earlier visit: no need to fade.
+    image.classList.remove("is-loading");
   }
-  image.addEventListener("load", () => {
-    image.classList.add("is-fading-in");
-    artPart.replaceWith(image);
-  }, { once: true });
+  return image;
+}
+
+// createStyledWord builds ART_WORD as styled text, for when there's no
+// art image (see .wordmark-art in style.css).
+function createStyledWord() {
+  const word = document.createElement("span");
+  word.className = "wordmark-art";
+  word.textContent = ART_WORD;
+  return word;
 }
 
 // createNameSwap builds the spot where the start of the name ("sanko")
