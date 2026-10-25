@@ -39,7 +39,9 @@
        tagline), so the browser doesn't fake italics by slanting. -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,900;1,400&display=swap">
 
-  <link rel="stylesheet" href="/static/css/style.css">
+  <!-- The shared styles first, then this page's own. -->
+  <link rel="stylesheet" href="/static/css/base.css">
+  <link rel="stylesheet" href="/static/css/home.css">
 
   <!-- type="module" lets our scripts import from each other
        (home.js imports config.js and common.js). -->
@@ -57,6 +59,7 @@
   <link rel="modulepreload" href="/static/js/common.js">
   <link rel="modulepreload" href="/static/js/config.js">
   <link rel="modulepreload" href="/static/js/search-overlay.js">
+  <link rel="modulepreload" href="/static/js/wordmark.js">
   <link rel="preload" href="/api/showcase" as="fetch" crossorigin>
 </head>
 <body>

@@ -1,7 +1,6 @@
-// The home page: builds the big wordmark (SANKO in white, taking turns
-// with サンコー, then MANGA in grey), places a few popular manga covers
-// (from /api/showcase) floating around it, and sets up the search
-// box that opens on top of the page (search-overlay.js).
+// The home page: sets up the big wordmark (wordmark.js), places a few
+// popular manga covers (from /api/showcase) floating around it, and sets
+// up the search box that opens on top of the page (search-overlay.js).
 //
 // The volumes stay alive in three quiet ways: each one bobs slowly (CSS),
 // on desktops they shift a little with the mouse, nearer ones more (depth),
@@ -9,24 +8,17 @@
 // The covers are shuffled on every visit, so no two visits look the same.
 
 import { fillBranding } from "./common.js";
-import { APP_NAME, GREY_WORD, JAPANESE_NAME, NAME_SOUNDS } from "./config.js";
 import { setUpSearchOverlay } from "./search-overlay.js";
-
-// How long each version of the name stays before swapping: the English
-// one longer, since that's the name people need to remember and type.
-// The first swap waits the full LATIN_SHOWN_MS, so people read the name
-// before anything moves.
-const LATIN_SHOWN_MS = 6000;
-const JAPANESE_SHOWN_MS = 3000;
+import { setUpWordmark } from "./wordmark.js";
 
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 // How many volumes the page has room for. The CSS shows all of them on
-// laptops, fewer on phones (see .volume:nth-child in style.css).
+// laptops, fewer on phones (see .volume:nth-child in home.css).
 const VOLUME_COUNT = 8;
 
 // How often one cover is swapped for another, and how long the new one
-// takes to fade in over the old (the same as the fade in style.css).
+// takes to fade in over the old (the same as the fade in home.css).
 const SWAP_EVERY_MS = 5000;
 const CROSSFADE_MS = 1200;
 
@@ -38,118 +30,11 @@ const home = document.querySelector(".home");
 const volumesLayer = document.querySelector(".volumes");
 
 fillBranding();
-buildWordmark();
-loadJapaneseFont();
+setUpWordmark();
 setUpSearchOverlay();
 loadCovers();
 pauseWhileHidden();
 followMouse();
-
-// --- The wordmark ----------------------------------------------------------
-
-// buildWordmark splits the name in the heading into two parts: the start
-// ("sanko") in white, taking turns with JAPANESE_NAME (サンコー), and
-// GREY_WORD at the end ("manga") in grey, like the small wordmark on the
-// other pages. The CSS shows the wordmark in capitals.
-//
-// Screen readers might read a name split into parts oddly, so the visible
-// wordmark is hidden from them and the plain name is read instead.
-function buildWordmark() {
-  const heading = document.querySelector(".brand-name");
-  const hasGreyWord = GREY_WORD !== "" && APP_NAME.endsWith(GREY_WORD);
-  const plainPart = hasGreyWord ? APP_NAME.slice(0, -GREY_WORD.length) : APP_NAME;
-
-  const forScreenReaders = document.createElement("span");
-  forScreenReaders.className = "visually-hidden";
-  forScreenReaders.textContent = APP_NAME;
-
-  const visible = document.createElement("span");
-  visible.className = "wordmark";
-  visible.setAttribute("aria-hidden", "true");
-  visible.append(createNameSwap(plainPart));
-
-  if (hasGreyWord) {
-    const grey = document.createElement("span");
-    grey.className = "wordmark-grey";
-    grey.textContent = GREY_WORD;
-    visible.append(grey);
-  }
-
-  heading.replaceChildren(forScreenReaders, visible);
-}
-
-// createNameSwap builds the spot where the start of the name ("sanko")
-// and its Japanese spelling take turns: both are there, one on top of the
-// other, and the CSS shows one at a time.
-//
-// Each version is split into its sounds (NAME_SOUNDS), one element per
-// sound, numbered with --sound. The CSS staggers the swap by that number,
-// so the sounds change one after another, left to right: SA → サ, N → ン,
-// KO → コー.
-function createNameSwap(latinName) {
-  const swap = document.createElement("span");
-  swap.className = "wordmark-swap";
-
-  // The sounds must spell the start of the name; if they don't (say the
-  // name changed but the sounds didn't), swap the whole word at once.
-  const spellsName = NAME_SOUNDS.map(([latin]) => latin).join("") === latinName;
-  const sounds = spellsName ? NAME_SOUNDS : [[latinName, JAPANESE_NAME]];
-
-  const latin = document.createElement("span");
-  latin.className = "wordmark-latin";
-  const japanese = document.createElement("span");
-  japanese.className = "wordmark-japanese";
-
-  sounds.forEach(([latinSound, katakana], index) => {
-    latin.append(createSound(latinSound, index));
-    japanese.append(createSound(katakana, index));
-  });
-
-  swap.append(latin, japanese);
-
-  if (!reduceMotion && JAPANESE_NAME !== "") {
-    takeTurns(swap);
-  }
-  return swap;
-}
-
-// createSound builds one sound of the name, numbered for the stagger.
-function createSound(text, index) {
-  const sound = document.createElement("span");
-  sound.textContent = text;
-  sound.style.setProperty("--sound", String(index));
-  return sound;
-}
-
-// takeTurns swaps the two versions of the name back and forth: the
-// English one for LATIN_SHOWN_MS, then the Japanese one for
-// JAPANESE_SHOWN_MS, and so on. While the tab is hidden or the search box
-// is open, it just waits (the name is hidden or blurred then).
-function takeTurns(swap) {
-  const showingJapanese = swap.classList.contains("is-japanese");
-  const wait = showingJapanese ? JAPANESE_SHOWN_MS : LATIN_SHOWN_MS;
-
-  setTimeout(() => {
-    const searching = document.body.classList.contains("search-open");
-    if (!document.hidden && !searching) {
-      swap.classList.toggle("is-japanese");
-    }
-    takeTurns(swap);
-  }, wait);
-}
-
-// loadJapaneseFont loads the font for JAPANESE_NAME (Noto Sans JP, extra
-// heavy) from Google Fonts. "text=" asks for just the few characters we
-// use, so the download is tiny instead of a whole Japanese font. Until it
-// arrives, the device's own Japanese font is used.
-function loadJapaneseFont() {
-  const font = document.createElement("link");
-  font.rel = "stylesheet";
-  font.href =
-    "https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@900" +
-    `&text=${encodeURIComponent(JAPANESE_NAME)}&display=swap`;
-  document.head.append(font);
-}
 
 // shuffled returns a copy of the list in random order (the Fisher-Yates
 // shuffle: every order is equally likely).
@@ -161,8 +46,6 @@ function shuffled(list) {
   }
   return copy;
 }
-
-// --- The volumes -----------------------------------------------------------
 
 // loadCovers fetches the covers and puts one in each volume. The search
 // works the whole time; the volumes fade in once they're ready. If
@@ -196,7 +79,7 @@ async function loadCovers() {
   }
 }
 
-// createVolume builds one volume (see "the volumes" in style.css for its
+// createVolume builds one volume (see "the volumes" in home.css for its
 // layers) with a cover in it. It returns the volume, its cover element,
 // and which manga it shows now.
 function createVolume(cover) {
@@ -310,7 +193,7 @@ function coverSrcset(cover) {
 
 // followMouse gives the volumes a sense of depth on desktops: as the mouse
 // moves, each volume shifts a few pixels the same way, nearer ones more
-// (their --depth in style.css). It sets --mx and --my (from -1 to 1, the
+// (their --depth in home.css). It sets --mx and --my (from -1 to 1, the
 // mouse's position from the page's centre) and the CSS does the rest.
 // Not on touch screens (no mouse), nor with "reduce motion".
 function followMouse() {

@@ -172,6 +172,11 @@ Friendly wording, e.g. "AniList is busy right now, try again in a few seconds."
 Plain HTML, CSS and JavaScript, no framework and no build step. Each screen
 is its own HTML page with one small script; Go serves them together with the
 API (so no CORS is needed) and bundles them into the binary with `embed`.
+Styles are split the same way: `base.css` holds what every page shares
+(tokens, base, footer, search bar, the small wordmark and "back to" links,
+the 404 page, touch tap areas), and each page adds its own file
+(`home.css`, `results.css`, `title.css`); the 404 page needs only
+`base.css`.
 Visual design is not limited by this: anything CSS can do is possible, and
 libraries can be added for specific effects if ever needed.
 

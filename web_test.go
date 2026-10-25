@@ -23,10 +23,15 @@ func TestWebRoutes(t *testing.T) {
 		// Unusual ids still get the page; manga.js then shows "not found".
 		{"title page with odd id", http.MethodGet, "/manga/abc", http.StatusOK, "text/html", "manga.js"},
 		{"title script", http.MethodGet, "/static/js/manga.js", http.StatusOK, "text/javascript", "renderTitle"},
-		{"stylesheet", http.MethodGet, "/static/css/style.css", http.StatusOK, "text/css", "--bg"},
+		{"shared stylesheet", http.MethodGet, "/static/css/base.css", http.StatusOK, "text/css", "--bg"},
+		{"home stylesheet", http.MethodGet, "/static/css/home.css", http.StatusOK, "text/css", ".volume-cover"},
+		{"results stylesheet", http.MethodGet, "/static/css/results.css", http.StatusOK, "text/css", ".results-grid"},
+		{"title stylesheet", http.MethodGet, "/static/css/title.css", http.StatusOK, "text/css", ".title-cover"},
+		{"old stylesheet is gone", http.MethodGet, "/static/css/style.css", http.StatusNotFound, "", ""},
 		{"home script", http.MethodGet, "/static/js/home.js", http.StatusOK, "text/javascript", "createVolume"},
 		{"config script", http.MethodGet, "/static/js/config.js", http.StatusOK, "text/javascript", "APP_NAME"},
 		{"search overlay script", http.MethodGet, "/static/js/search-overlay.js", http.StatusOK, "text/javascript", "setUpSearchOverlay"},
+		{"wordmark script", http.MethodGet, "/static/js/wordmark.js", http.StatusOK, "text/javascript", "setUpWordmark"},
 		{"no folder listings", http.MethodGet, "/static/js/", http.StatusNotFound, "", ""},
 		{"missing static file", http.MethodGet, "/static/nope.css", http.StatusNotFound, "", ""},
 		// Unknown addresses get the styled "Page not found" page, with a 404.
@@ -155,7 +160,7 @@ func TestImages(t *testing.T) {
 func TestRepeatVisitsNotModified(t *testing.T) {
 	router := newRouter(&app{source: &fakeSource{}})
 
-	for _, path := range []string{"/", "/search", "/static/css/style.css", "/static/js/home.js"} {
+	for _, path := range []string{"/", "/search", "/static/css/base.css", "/static/js/home.js"} {
 		first := httptest.NewRecorder()
 		router.ServeHTTP(first, httptest.NewRequest(http.MethodGet, path, nil))
 		etag := first.Header().Get("ETag")

@@ -131,6 +131,8 @@ novels) and excludes adult titles.
 | `middleware.go`, `compress.go`, `respond.go` | Logging, gzip, and shared response helpers |
 | `web.go` | Serves the pages (filling in the name and address for link previews), CSS, JavaScript and images, with ETags so repeat visits are cheap |
 | `web/` | The website: `index.html` (home), `search.html` (results), `manga.html` (title page), `404.html`, plus the tab icon, the iPhone home-screen icon and the link preview picture |
+| `web/static/css/` | `base.css` (what every page shares), plus one file per page: `home.css`, `results.css`, `title.css` |
+| `web/static/js/` | One script per page (`home.js`, `search.js`, `manga.js`), plus `wordmark.js` (the home page name and its サンコー animation), `search-overlay.js` (the home search box) and `common.js` (shared helpers) |
 | `web/static/js/config.js` | The frontend's name, tagline and wordmark settings |
 | `docs/design.md` | Every design decision, and what was tried and dropped |
 | `docs/api-contract.md` | The API contract |

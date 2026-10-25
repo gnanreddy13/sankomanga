@@ -12,7 +12,7 @@
 
 import { addClearButton, preventEmptySearch } from "./common.js";
 
-// How long the closing fade takes (the same as .is-closing in style.css).
+// How long the closing fade takes (the same as .is-closing in home.css).
 const CLOSE_MS = 200;
 
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -82,7 +82,7 @@ export function setUpSearchOverlay() {
     }
   }
 
-  // hide fades the overlay out (see .is-closing in style.css), then hides
+  // hide fades the overlay out (see .is-closing in home.css), then hides
   // it for good. The page is usable straight away; only the picture of
   // the overlay lingers for the fade. No fade with "reduce motion".
   function hide() {

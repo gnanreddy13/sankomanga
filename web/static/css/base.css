@@ -1,0 +1,456 @@
+/* base.css: what every page uses. Each page also loads its own file
+   (home.css, results.css or title.css; the 404 page needs only this
+   one). Load this one first: the page files build on it. */
+
+/* =============================================================
+   Design tokens
+   Every colour, font, size and timing used on the site lives
+   here, so the whole look can be adjusted in one place.
+   ============================================================= */
+:root {
+  --bg: #000;                             /* pure black page background */
+  --surface: #111114;                     /* slightly lifted areas */
+  --border: rgba(255, 255, 255, 0.07);    /* hairline borders */
+  --border-strong: rgba(255, 255, 255, 0.14);
+  --text: #f4f4f5;
+  --text-muted: #8e8e98;
+  /* The quietest text (card info lines, footer, placeholders). Still
+     4.7:1 contrast on black, above the 4.5:1 that small text needs to be
+     comfortably readable (WCAG AA). Don't go darker than this. */
+  --text-faint: #77777f;
+  --accent: #e9e5dc;                      /* the quiet neutral accent */
+
+  /* Inter first; then each device's own fonts. Hiragino and Noto Sans JP
+     make Japanese titles look native on Apple and Android/Windows. */
+  --font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto,
+          "Hiragino Sans", "Noto Sans JP", sans-serif;
+
+  --radius-lg: 28px;
+  --radius-md: 14px;
+  --radius-sm: 10px;
+
+  /* A gentle "ease-out": fast at first, then settling softly. */
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Tells the browser the page is dark, so built-in parts (scrollbars,
+     form controls) are drawn dark too. */
+  color-scheme: dark;
+}
+
+/* =============================================================
+   Base
+   ============================================================= */
+*,
+*::before,
+*::after {
+  box-sizing: border-box; /* widths include padding and border */
+}
+
+html,
+body {
+  margin: 0;
+}
+
+/* A soft crossfade when going from one page of the site to another,
+   instead of a hard cut. The browser takes a picture of the old page,
+   loads the new one, and fades between them. Supported in Chrome, Edge
+   and Safari; other browsers just change pages as before. Left out for
+   people who prefer less motion. */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition {
+    navigation: auto;
+  }
+
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 0.25s;
+  }
+}
+
+body {
+  min-height: 100vh;
+  min-height: 100dvh; /* "dynamic" height: correct on phones with moving toolbars */
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Hides an element visually but keeps it for screen readers
+   (used for the search box's label). */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* =============================================================
+   Footer (every page)
+   ============================================================= */
+.site-footer {
+  padding: 20px 16px 28px;
+  text-align: center;
+  font-size: 0.8125rem;
+  color: var(--text-faint);
+}
+
+/* On the home page the credit sits in the bottom-right corner
+   (see .home-corners) instead of in a footer. */
+.home-credit {
+  margin: 0;
+}
+
+.site-footer a {
+  color: var(--text-muted);
+  text-decoration: none;
+  border-bottom: 1px solid var(--border-strong);
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.site-footer a:hover {
+  color: var(--text);
+  border-color: var(--text-muted);
+}
+
+/* The AniList logo after "Data from": no underline, sitting level with
+   the text, slightly dimmed until you hover it. Its colours are AniList's
+   own and are never changed. */
+.footer-logo-link {
+  display: inline-flex;
+  margin-left: 2px;
+  vertical-align: middle;
+  border-bottom: 0;
+  border-radius: 4px;
+  opacity: 0.85;
+  transition: opacity 0.2s;
+}
+
+.footer-logo-link:hover {
+  opacity: 1;
+}
+
+.footer-logo-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.footer-logo-link img {
+  display: block;
+}
+
+/* =============================================================
+   Search bar (home now; the other pages will reuse it)
+   ============================================================= */
+.search {
+  position: relative;
+}
+
+.search-input {
+  width: 100%;
+  height: 58px;
+  padding: 0 64px 0 22px; /* room on the right for the button */
+  font: inherit;
+  font-size: 1rem;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  outline: none;
+  transition: border-color 0.2s, background-color 0.2s, box-shadow 0.25s var(--ease);
+}
+
+.search-input::placeholder {
+  color: var(--text-faint);
+}
+
+.search-input:hover {
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.search-input:focus {
+  border-color: rgba(233, 229, 220, 0.45);
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 0 0 4px rgba(233, 229, 220, 0.08);
+}
+
+/* Hide the browser's own "x" clear button in search boxes, for a cleaner look. */
+.search-input::-webkit-search-cancel-button {
+  appearance: none;
+}
+
+.search-button {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: var(--bg);
+  cursor: pointer;
+  transition: transform 0.25s var(--ease), opacity 0.2s;
+}
+
+.search-button:hover {
+  transform: translateX(2px);
+}
+
+.search-button:active {
+  transform: scale(0.96);
+}
+
+.search-button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* Underline variant of the search (home and results pages): a single,
+   steady grey line, like writing on paper, with a small magnifying-glass
+   button on the right. */
+.search--line .search-input {
+  height: 40px;
+  padding: 0 64px 0 0; /* room on the right for the × and the magnifying glass */
+  font-size: 0.875rem;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--border-strong);
+  border-radius: 0;
+}
+
+/* While the box is selected (typing, or reached with the Tab key), the
+   line turns a lighter grey, so it's clear where you are. A simple state
+   change, not an animation. */
+.search--line .search-input:focus {
+  background: transparent;
+  box-shadow: none;
+  border-bottom-color: var(--text-muted);
+}
+
+.search--line .search-button {
+  top: 50%;
+  right: 0;
+  width: 32px;
+  height: 32px;
+  transform: translateY(-50%);
+  background: transparent;
+  color: var(--text-muted);
+  border-radius: 8px;
+  transition: color 0.2s, background-color 0.2s;
+}
+
+/* Hover: the icon simply turns white (no button backing). */
+.search--line .search-button:hover {
+  color: #fff;
+  background: transparent;
+  transform: translateY(-50%);
+}
+
+/* A smaller search line (results page). */
+.search--small .search-input {
+  height: 36px;
+  font-size: 0.8125rem;
+}
+
+.search--small .search-button {
+  width: 28px;
+  height: 28px;
+}
+
+/* The "×" that clears the search box (added by common.js). It sits just
+   left of the magnifying glass and only shows while there's text in the
+   box ("has-text"). Like the other icons: grey, white on hover, no backing. */
+.search-clear {
+  position: absolute;
+  top: 50%;
+  right: 32px; /* just left of the magnifying glass */
+  display: none;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px; /* only shows in the keyboard focus outline */
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transform: translateY(-50%);
+  transition: color 0.2s;
+}
+
+.search.has-text .search-clear {
+  display: grid;
+}
+
+.search-clear:hover {
+  color: #fff;
+}
+
+.search-clear:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.search--small .search-clear {
+  right: 28px;
+}
+
+.search--small .search-input {
+  padding-right: 56px;
+}
+
+/* =============================================================
+   Shared page parts
+   The small wordmark and "back to" links at the top of the
+   results, title and 404 pages, and the loading shimmer used by
+   the results and title pages.
+   ============================================================= */
+
+/* The small SANKOMANGA wordmark at the top of the results, title and 404
+   pages, linking home: the home page's name, shrunk to 17px. SANKO in
+   solid white, MANGA as a white outline, like the big one. On hover or
+   keyboard focus, MANGA's outline glows. */
+.mini-wordmark {
+  display: inline-flex;
+  align-items: center;
+  height: 32px; /* the same height as the "back to" link beside it */
+  font-size: 1.0625rem;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  color: var(--text);
+  text-decoration: none;
+  border-radius: 4px; /* only shows in the keyboard focus outline */
+}
+
+/* The outline is 1px here (drawn 2px and half covered by the fill; see
+   .wordmark-grey for why). The fill is the page's black, so the letters
+   look hollow. */
+.mini-wordmark-dim {
+  color: var(--bg);
+  -webkit-text-stroke: 2px var(--text);
+  paint-order: stroke fill;
+  transition: filter 0.25s var(--ease);
+}
+
+/* The glow: two soft white haloes that follow the outline (drop-shadow
+   traces the drawn letters, not a box), a tight bright one and a wider,
+   fainter one. The letters stay hollow. */
+.mini-wordmark:hover .mini-wordmark-dim,
+.mini-wordmark:focus-visible .mini-wordmark-dim {
+  filter:
+    drop-shadow(0 0 3px rgba(255, 255, 255, 0.9))
+    drop-shadow(0 0 10px rgba(255, 255, 255, 0.55));
+}
+
+.mini-wordmark:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* "back to [icon]" links at the top of a page: home (results page) and
+   search (title page). Small grey text plus an icon that simply turn
+   white on hover (no button backing). */
+.icon-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  text-decoration: none;
+  border-radius: 4px; /* only shows in the keyboard focus outline */
+  transition: color 0.2s;
+}
+
+.icon-link:hover {
+  color: #fff;
+}
+
+.icon-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@keyframes shimmer {
+  from { background-position: 150% 0; }
+  to   { background-position: -50% 0; }
+}
+
+/* =============================================================
+   "Page not found" (404.html): one small centred message.
+   ============================================================= */
+.notfound-page {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 32px 16px;
+  text-align: center;
+}
+
+.notfound-title {
+  margin: 0;
+  font-size: 1.375rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+
+.notfound-text {
+  margin: 0 0 8px;
+  font-size: 0.875rem;
+  font-style: italic;
+  color: var(--text-muted);
+}
+
+/* =============================================================
+   Touch screens
+   Fingers need bigger targets than mouse pointers: Apple
+   recommends at least 44px, Android 48px. The small icon buttons
+   get larger INVISIBLE tap areas here (an empty ::after layer
+   reaching beyond the button), so nothing changes visually.
+   ============================================================= */
+@media (pointer: coarse) {
+  .icon-link,
+  .footer-logo-link {
+    position: relative; /* so their tap area is placed around them */
+  }
+
+  .search-button::after,
+  .search-clear::after,
+  .icon-link::after,
+  .site-footer .footer-logo-link::after {
+    content: "";
+    position: absolute;
+  }
+
+  .search-button::after {
+    inset: -8px; /* 28–40px button → 44–56px to tap */
+  }
+
+  .search-clear::after {
+    inset: -9px; /* 26px × → 44px to tap */
+  }
+
+  .icon-link::after {
+    inset: -6px -8px; /* 32px tall → 44px */
+  }
+
+  .site-footer .footer-logo-link::after {
+    inset: -13px; /* 18px logo → 44px */
+  }
+}

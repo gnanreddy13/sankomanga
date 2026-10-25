@@ -1,0 +1,517 @@
+/* home.css: the home page (/). Loaded after base.css. */
+
+/* =============================================================
+   Home page
+   The name and tagline in the middle of a black page, a few popular
+   manga floating around them as small 3D volumes (see "the volumes"
+   below), and the small print in the bottom corners. Lots of black.
+   ============================================================= */
+.home {
+  flex: 1;
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 24px 16px 64px; /* the bottom room is for the corner text */
+  overflow: hidden; /* volumes near the edges may peek past them */
+  /* Keeps the volumes' stacking inside the home page, so the search
+     overlay always draws above them. */
+  isolation: isolate;
+}
+
+/* Middle: the name and tagline, centred, above the volumes. */
+.home-intro {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: min(960px, 100%);
+  text-align: center;
+}
+
+.brand-name {
+  margin: 0;
+  font-size: clamp(1.375rem, 1.1rem + 0.8vw, 1.75rem);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
+
+/* On the home page the name is the big wordmark, in extra-heavy
+   capitals: 64px on wider screens (smaller on narrow ones), always one
+   line. The name itself stays lowercase in text everywhere else. */
+.home .brand-name {
+  font-size: min(4rem, 8vw);
+  white-space: nowrap;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+
+/* SANKO and サンコー take turns in the same spot (home.js adds and removes
+   .is-japanese): sound by sound, left to right, SA becomes サ, N becomes
+   ン and KO becomes コー. Each sound leaving drifts up, blurs and fades,
+   while its katakana settles in from below.
+
+   Both versions sit in the same grid cell, so the spot is always as wide
+   as the wider of the two and MANGA never shifts sideways; each is lined
+   up against MANGA (justify-self: end) and on the same baseline. */
+.wordmark-swap {
+  display: inline-grid;
+  align-items: baseline;
+}
+
+.wordmark-latin,
+.wordmark-japanese {
+  grid-area: 1 / 1;
+  justify-self: end;
+}
+
+/* One sound. home.js numbers them (--sound: 0, 1, 2), and each starts
+   130ms after the one before, which makes the left-to-right ripple.
+   inline-block lets each sound move on its own. */
+.wordmark-latin > span,
+.wordmark-japanese > span {
+  display: inline-block;
+  transition:
+    opacity 0.7s var(--ease),
+    transform 0.7s var(--ease),
+    filter 0.7s var(--ease);
+  transition-delay: calc(var(--sound, 0) * 130ms);
+}
+
+/* Katakana fill more of their line than capitals do, so they're set a
+   little smaller to look the same height as SANKO. The long-vowel bar ー
+   runs to the very edge of its space, so a small gap keeps it off MANGA. */
+.wordmark-japanese {
+  font-family: "Noto Sans JP", var(--font);
+  font-size: 0.84em;
+  letter-spacing: 0.02em;
+  margin-right: 0.1em;
+}
+
+/* Waiting below, out of sight, until it's the Japanese name's turn. */
+.wordmark-japanese > span {
+  opacity: 0;
+  transform: translateY(0.18em);
+  filter: blur(6px);
+}
+
+.wordmark-swap.is-japanese .wordmark-latin > span {
+  opacity: 0;
+  transform: translateY(-0.18em);
+  filter: blur(6px);
+}
+
+.wordmark-swap.is-japanese .wordmark-japanese > span {
+  opacity: 1;
+  transform: none;
+  filter: none;
+}
+
+/* MANGA, as a white outline after the solid white SANKO: hollow letters
+   with a line about 1.5% of the font size (1.5px on a laptop), never
+   thinner than 1px so it stays crisp on phones. The small wordmark on
+   the other pages uses the same outline, at 1px (.mini-wordmark-dim).
+
+   Inter draws each letter from overlapping shapes, and a plain outline
+   would trace the hidden joins too (stray lines inside A, N and G). So
+   the outline is drawn first, twice as thick, and the letters are then
+   filled with the page's black on top ("paint-order: stroke fill"): the
+   fill covers the inner half of the line, and the stray joins with it,
+   leaving a clean outline of the right thickness. */
+.wordmark-grey {
+  color: var(--bg);
+  -webkit-text-stroke: max(2px, 0.032em) var(--text);
+  paint-order: stroke fill;
+}
+
+.brand-tagline {
+  margin: 8px 0 0;
+  font-size: 0.8125rem;
+  font-style: italic;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+/* Gentle entrance: name and hint rise and fade in, one after the other.
+   (rise-in is also used by the search overlay.) */
+.home-intro > * {
+  animation: rise-in 0.9s var(--ease) both;
+}
+
+.home-intro > :nth-child(2) {
+  animation-delay: 0.12s;
+}
+
+/* The small print in the bottom corners: the search hint on the left,
+   the AniList credit on the right, in small, spaced-out capitals. */
+.home-corners {
+  position: absolute;
+  left: 24px;
+  right: 24px;
+  bottom: 20px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 0.6875rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  animation: rise-in 0.9s var(--ease) 0.24s both;
+}
+
+/* The hint keeps its padding (a bigger area to click), and the negative
+   margin pulls it back so its text lines up with the corner. */
+.home-corners .search-hint {
+  margin: -6px -10px;
+  font-size: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit; /* buttons don't take it from their parent by default */
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* =============================================================
+   Home page: the volumes
+   A few popular manga covers floating around the name: flat, like the
+   covers on the other pages, with the same rounded corners and soft
+   white glow.
+   ============================================================= */
+
+/* Covers the whole home page; each volume is placed by percentages, so
+   the layout scales with the screen. Clicks pass straight through (they
+   open the search). Fades in once the covers are ready. */
+.volumes {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1.2s var(--ease);
+  /* The width of one volume: about 110px on a laptop. */
+  --volume-w: clamp(64px, 9.5vw, 124px);
+}
+
+.volumes.is-ready {
+  opacity: 1;
+}
+
+/* Where each volume sits (--x, --y: its top-left corner, as a share of
+   the page), how much it moves with the mouse (--depth: nearer volumes
+   move more), and its float timing, so they never bob in step. Placed by
+   hand around the name, never over it. */
+.volume:nth-child(1) { --x: 5%;  --y: 8%;  --depth: 10; --float: 7.0s; --float-delay: -1s; }
+.volume:nth-child(2) { --x: 27%; --y: 13%; --depth: 6;  --float: 8.5s; --float-delay: -4s; }
+.volume:nth-child(3) { --x: 63%; --y: 5%;  --depth: 14; --float: 7.5s; --float-delay: -2s; }
+.volume:nth-child(4) { --x: 85%; --y: 15%; --depth: 8;  --float: 9.0s; --float-delay: -6s; }
+.volume:nth-child(5) { --x: 9%;  --y: 60%; --depth: 12; --float: 8.0s; --float-delay: -3s; }
+.volume:nth-child(6) { --x: 33%; --y: 72%; --depth: 7;  --float: 7.2s; --float-delay: -5s; }
+.volume:nth-child(7) { --x: 61%; --y: 69%; --depth: 11; --float: 8.8s; --float-delay: -1.5s; }
+.volume:nth-child(8) { --x: 83%; --y: 57%; --depth: 9;  --float: 7.8s; --float-delay: -7s; }
+
+/* One volume, in two layers so each movement stays separate:
+   .volume       its place, plus a small shift with the mouse (home.js
+                 sets --mx and --my, from -1 to 1, on desktops only)
+   .volume-float a slow bob up and down, holding the cover */
+.volume {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: var(--volume-w);
+  transform: translate(
+    calc(var(--mx, 0) * var(--depth) * 1px),
+    calc(var(--my, 0) * var(--depth) * 1px)
+  );
+  transition: transform 0.8s var(--ease);
+}
+
+.volume-float {
+  animation: volume-float var(--float) ease-in-out var(--float-delay) infinite alternate;
+}
+
+@keyframes volume-float {
+  from { transform: translateY(-5px); }
+  to   { transform: translateY(5px); }
+}
+
+/* Paused while the tab is hidden (home.js), and while the search box is
+   open (moving things under its blur look like they're shimmering). */
+.home.is-paused .volume-float,
+body.search-open .volume-float {
+  animation-play-state: paused;
+}
+
+/* The cover. Shows its own colour (dimmed) until the image has loaded
+   and faded in. Rounded like the result cards (6px), with a white glow:
+   a halo close around the cover, fading into a wider haze, about as
+   bright as the title page cover's. */
+.volume-cover {
+  position: relative;
+  aspect-ratio: 7 / 10; /* AniList covers are roughly this shape */
+  overflow: hidden;
+  border-radius: 6px;
+  background-color: color-mix(in srgb, var(--card-color, #2a2a30) 25%, #0b0b0d);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 0 24px -2px rgba(255, 255, 255, 0.27),
+    0 0 64px 2px rgba(255, 255, 255, 0.16);
+}
+
+/* The cover image. Each new cover is laid on top of the old one and fades
+   in over it (a crossfade), so the volume never shows a gap; home.js
+   then removes the old one. */
+.volume-cover img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  /* An even fade from start to finish: a dissolve, not a sudden switch. */
+  transition: opacity 1.2s ease-in-out;
+}
+
+.volume-cover img.is-loaded {
+  opacity: 1;
+}
+
+/* Short screens (a phone turned sideways): the name stays on one line
+   but is also sized by the screen's height, and only the volumes at the
+   sides and top stay (the others would sit behind the name). */
+@media (max-height: 500px) {
+  .home .brand-name {
+    font-size: min(4rem, 8vw, 12vh);
+  }
+
+  .home {
+    padding-bottom: 48px;
+  }
+
+  .home-corners {
+    bottom: 14px;
+  }
+
+  .volumes {
+    --volume-w: min(7.5vw, 20vh);
+  }
+
+  .volume:nth-child(2),
+  .volume:nth-child(6),
+  .volume:nth-child(7) {
+    display: none;
+  }
+
+  .volume:nth-child(5) { --y: 56%; }
+  .volume:nth-child(8) { --y: 54%; }
+}
+
+/* Phones held upright (narrow, and not short). The screen is too narrow
+   for a big name on one line, so the name is stacked, SANKO over MANGA,
+   and both lines are much bigger (SANKO about 56px). */
+@media (max-width: 720px) and (min-height: 501px) {
+  /* 15% of the screen width makes SANKO fill about two thirds of it. */
+  .home .brand-name {
+    font-size: min(4rem, 15vw);
+    line-height: 0.95;
+  }
+
+  .wordmark {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* No neighbour to keep away from on its own line. */
+  .wordmark-japanese {
+    margin-right: 0;
+  }
+
+  /* Four bigger volumes: two above the name, two below. */
+  .volumes {
+    --volume-w: min(27vw, 17vh);
+  }
+
+  .volume:nth-child(n + 5) {
+    display: none;
+  }
+
+  .volume:nth-child(1) { --x: 7%;  --y: 5%; }
+  .volume:nth-child(2) { --x: 62%; --y: 11%; }
+  .volume:nth-child(3) { --x: 11%; --y: 64%; }
+  .volume:nth-child(4) { --x: 63%; --y: 69%; }
+}
+
+/* =============================================================
+   Home page: search overlay
+   The home page has no search bar. A quiet hint sits under the
+   tagline, and the search box opens on top of the blurred page
+   (search-overlay.js).
+   ============================================================= */
+
+/* The hint: small, quiet text that's also a real button. */
+.search-hint {
+  padding: 6px 10px;
+  font: inherit;
+  font-size: 0.8125rem;
+  letter-spacing: 0.01em;
+  color: var(--text-faint);
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.search-hint:hover {
+  color: var(--text-muted);
+}
+
+.search-hint:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Show the wording that fits the device: "Type to search" where there's
+   a keyboard and mouse, "Tap to search" on touch screens. */
+.search-hint--touch {
+  display: none;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .search-hint--keys {
+    display: none;
+  }
+
+  .search-hint--touch {
+    display: inline;
+  }
+}
+
+/* The overlay: covers the whole window, dims and blurs the page behind,
+   and holds the search box in the middle, where the name sits. (On
+   phones, the on-screen keyboard covers roughly the lower 40%, so the
+   middle stays just clear of it.) */
+.search-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  justify-items: center;
+  align-items: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.55);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  animation: overlay-in 0.25s var(--ease) both;
+}
+
+/* Our "display: grid" above would otherwise override the browser's
+   built-in "hidden means invisible". */
+.search-overlay[hidden] {
+  display: none;
+}
+
+/* No scrolling the page behind while the search is open. */
+body.search-open {
+  overflow: hidden;
+}
+
+@keyframes overlay-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Closing: the reverse of opening, a little quicker. home.js adds
+   .is-closing, waits for this to finish, then hides the overlay. Clicks
+   pass through straight away, so the page is usable at once. */
+.search-overlay.is-closing {
+  pointer-events: none;
+  animation: overlay-out 0.2s var(--ease) both;
+}
+
+.search-overlay.is-closing .search--overlay {
+  animation: sink-out 0.2s var(--ease) both;
+}
+
+@keyframes overlay-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+@keyframes sink-out {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+/* The search box itself: the same grey line style, just bigger. */
+.search--overlay {
+  width: min(440px, 100%);
+  animation: rise-in 0.35s var(--ease) both;
+}
+
+.search--overlay .search-input {
+  height: 52px;
+  padding-right: 76px; /* room for the × and the magnifying glass */
+  font-size: 1.25rem;
+  letter-spacing: -0.01em;
+}
+
+.search--overlay .search-button {
+  width: 40px;
+  height: 40px;
+}
+
+.search--overlay .search-clear {
+  right: 40px;
+}
+
+/* =============================================================
+   Reduced motion
+   People who turn on "reduce motion" on their device get still
+   volumes (no float, no mouse depth, no swaps) and no entrance
+   animation.
+   ============================================================= */
+@media (prefers-reduced-motion: reduce) {
+  .volume-float,
+  .home-intro > *,
+  .home-corners {
+    animation: none;
+  }
+
+  .volumes,
+  .volume,
+  .volume-cover img,
+  .wordmark-latin > span,
+  .wordmark-japanese > span {
+    transition: none;
+  }
+
+  .search-overlay,
+  .search--overlay,
+  .search-overlay.is-closing,
+  .search-overlay.is-closing .search--overlay {
+    animation: none;
+  }
+}

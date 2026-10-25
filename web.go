@@ -152,7 +152,7 @@ func serveStatic(site fs.FS) http.HandlerFunc {
 }
 
 // staticETags works out the ETag of every file under static/, keyed by
-// its path ("static/css/style.css"). The files are built into the
+// its path ("static/css/base.css"). The files are built into the
 // program, so they can't change while it runs.
 func staticETags(site fs.FS) map[string]string {
 	etags := make(map[string]string)

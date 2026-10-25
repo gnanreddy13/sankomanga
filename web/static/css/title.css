@@ -1,0 +1,237 @@
+/* title.css: a title page (/manga/{id}). Loaded after base.css. */
+
+/* =============================================================
+   Title page (/manga/{id})
+   A centred block: "< sankomanga" lined up with its left edge,
+   then the cover with the details beside it (stacked on phones).
+   ============================================================= */
+/* The title page's top line: the wordmark on the left, "back to
+   [search]" on the right. */
+.title-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.title-page {
+  flex: 1;
+  width: 100%;
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 44px 24px 24px;
+  /* Centre the back link + title vertically in the window, like the home
+     page. When a long synopsis makes the page taller than the window, it
+     simply starts at the top and scrolls as usual. */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* Keep the search icon its own size (a column layout would otherwise
+   stretch its clickable area across the whole page). */
+
+.title {
+  display: flex;
+  align-items: flex-start;
+  gap: 48px;
+  margin-top: 36px;
+}
+
+/* manga.js hides the title area (with the "hidden" attribute) when it
+   shows "not found" or an error. Our "display: flex" above would
+   otherwise override the browser's built-in "hidden means invisible". */
+.title[hidden] {
+  display: none;
+}
+
+/* The big cover, with a strong white glow behind it (a stronger version
+   of the glow on hovered covers on the results page). */
+.title-cover {
+  flex: none;
+  width: 240px;
+  aspect-ratio: 7 / 10;
+  overflow: hidden;
+  border-radius: 8px;
+  /* While the image loads: the cover's own colour, dimmed. */
+  background-color: color-mix(in srgb, var(--cover-color, #2a2a30) 25%, #0b0b0d);
+  /* The glow (white for every title): a strong soft glow spreading out
+     below the cover, plus a faint even halo all around its edges. */
+  box-shadow:
+    0 22px 80px -16px rgba(255, 255, 255, 0.34),
+    0 0 36px rgba(255, 255, 255, 0.08);
+}
+
+.title-cover img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.6s var(--ease);
+}
+
+.title-cover img.is-loaded {
+  opacity: 1;
+}
+
+.title-body {
+  flex: 1;
+  min-width: 0; /* lets long titles wrap instead of stretching the layout */
+}
+
+.title-name {
+  margin: 0;
+  font-size: clamp(1.5rem, 1.2rem + 1vw, 2rem);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+}
+
+.title-subtitle {
+  margin: 6px 0 0;
+  font-size: 0.9375rem;
+  font-style: italic;
+  color: var(--text-muted);
+}
+
+/* "Manga · Finished · 2009 · 141 chapters · 34 volumes" */
+.title-facts {
+  margin: 18px 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* "★ 8.4", on its own line and a little larger: the first thing most
+   people want to know. */
+.title-score {
+  margin: 10px 0 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+/* Genres as small, quiet outlined pills. */
+.title-genres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 18px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.title-genres li {
+  padding: 3px 10px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  border: 1px solid #2a2a30;
+  border-radius: 999px;
+}
+
+/* The synopsis: comfortable reading text, at most ~60 characters a line. */
+.title-synopsis {
+  max-width: 60ch;
+  margin-top: 28px;
+}
+
+.title-synopsis p {
+  margin: 0 0 1em;
+  font-size: 0.9375rem;
+  line-height: 1.7;
+  color: #c9c9cf;
+}
+
+.title-link {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  text-decoration: none;
+  border-bottom: 1px solid var(--border-strong);
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.title-link:hover {
+  color: var(--text);
+  border-color: var(--text-muted);
+}
+
+/* Parts the API had nothing for are left empty; hide them completely so
+   nothing shows as a blank gap. */
+.title-subtitle:empty,
+.title-score:empty,
+.title-genres:empty,
+.title-synopsis:empty {
+  display: none;
+}
+
+/* Loading: the cover shimmers (like the results placeholders) and faint
+   bars stand in for the text until the details arrive. */
+.title-skeleton {
+  display: none;
+  max-width: 320px;
+}
+
+.title.is-loading .title-skeleton {
+  display: block;
+}
+
+.title.is-loading .title-cover {
+  background: linear-gradient(100deg, #0e0e11 30%, #17171b 50%, #0e0e11 70%);
+  background-size: 200% 100%;
+  animation: shimmer 1.8s ease-in-out infinite;
+}
+
+.title.is-loading .title-link {
+  display: none;
+}
+
+/* "This title isn't available here. Search for another" */
+.title-message {
+  margin: 48px 0 0;
+  font-size: 0.875rem;
+  font-style: italic;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+.title-message:empty {
+  display: none;
+}
+
+.title-message a {
+  color: var(--text);
+  text-decoration: none;
+  border-bottom: 1px solid var(--border-strong);
+}
+
+/* Phones: stacked. The cover centred on top, the details below. */
+@media (max-width: 720px) {
+  .title-page {
+    padding: 32px 16px 16px;
+  }
+
+  .title {
+    flex-direction: column;
+    gap: 28px;
+    margin-top: 28px;
+  }
+
+  .title-cover {
+    width: 180px;
+    align-self: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .title-cover img {
+    transition: none;
+  }
+
+  .title.is-loading .title-cover {
+    animation: none;
+  }
+}

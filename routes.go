@@ -17,8 +17,8 @@ func newRouter(a *app) http.Handler {
 	// A title page. The id is read by manga.js in the browser, which then
 	// calls /api/manga/{id} (and shows "not found" for unknown ids).
 	mux.HandleFunc("GET /manga/{id}", servePage(site, "manga.html"))
-	// CSS, JavaScript, and other files: /static/css/style.css is the file
-	// web/static/css/style.css.
+	// CSS, JavaScript, and other files: /static/css/base.css is the file
+	// web/static/css/base.css.
 	mux.HandleFunc("GET /static/", serveStatic(site))
 	mux.HandleFunc("GET /favicon.ico", serveImage(site, "favicon.svg", "image/svg+xml"))
 	mux.HandleFunc("GET /apple-touch-icon.png", serveImage(site, "apple-touch-icon.png", "image/png"))
