@@ -11,7 +11,7 @@ not rules: the design can change at any time.
 | Accent colour | One quiet neutral accent on home and results. On a title page, accents (score, links, glow) use that title's `coverColor`, falling back to the neutral accent if it's missing or too dark to read. |
 | Fonts | One clean sans-serif (Inter) for everything; titles are just larger and bolder. Japanese text falls back to the device's Japanese font. |
 | Theme | Dark only for now (no light-mode switch). |
-| Mini wordmark | On the results and title pages, top left: the home page's name shrunk to 17px, Inter 900 capitals, SANKO in white and MANGA in the faint grey (the art or dotted letters would be noise at that size). It links home and replaces the old "back to [home icon]"; screen readers hear "sankomanga, home". MANGA lightens slightly on hover and keyboard focus. Filled in from `APP_NAME` and `ART_WORD` in `config.js`. |
+| Mini wordmark | On the results and title pages, top left: the home page's name shrunk to 17px, Inter 900 capitals, SANKO in white and MANGA in the faint grey (the art or dotted letters would be noise at that size). It links home and replaces the old "back to [home icon]" (also on the 404 page, centred under the message); screen readers hear "sankomanga, home". MANGA lightens slightly on hover and keyboard focus. Filled in from `APP_NAME` and `ART_WORD` in `config.js`. |
 | Tab icon | サ (the first sound of サンコー) in white on a black rounded square, drawn as three strokes so it looks the same on every device. One file, `web/favicon.svg`, served as `/favicon.ico` and linked from every page. |
 | Loading | The home page tells the browser up front about the scripts it will need and the covers list (preload hints), so it fetches them all at once instead of one after another. The server keeps the covers list ready, so it answers instantly. |
 | Page changes | A soft 0.25s crossfade between pages of the site (the browser's cross-page view transitions: Chrome, Edge and Safari; other browsers change pages as before). Off with "reduce motion". |
@@ -139,7 +139,7 @@ Missing facts are always left out, never shown as "—".
 ## Page not found
 
 Any address that isn't a page of the site gets a small centred message
-("Page not found" / "There's nothing at this address." / "back to [home]")
+("Page not found" / "There's nothing at this address." / the mini wordmark, linking home)
 with a real 404 status. `/favicon.ico` serves the site's icon.
 
 ## Errors

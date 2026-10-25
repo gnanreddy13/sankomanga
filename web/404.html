@@ -11,7 +11,7 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,900;1,400&display=swap">
 
   <link rel="stylesheet" href="/static/css/style.css">
   <script type="module">
@@ -24,12 +24,9 @@
   <main class="notfound-page">
     <h1 class="notfound-title">Page not found</h1>
     <p class="notfound-text">There's nothing at this address.</p>
-    <a class="icon-link" href="/" aria-label="Back to home" title="Back to home">
-      <span>back to</span>
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path d="M4 10.5L12 4l8 6.5V19a1 1 0 0 1-1 1h-4.5v-5.5h-5V20H5a1 1 0 0 1-1-1v-8.5z" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/>
-      </svg>
-    </a>
+    <!-- The way home: the small SANKOMANGA wordmark, as on the results
+         and title pages (common.js turns it into the two-tone wordmark). -->
+    <a class="mini-wordmark" href="/" data-mini-wordmark>sankomanga</a>
   </main>
 
   <footer class="site-footer">
