@@ -346,12 +346,10 @@ body {
 }
 
 /* On the home page the name is the big wordmark, in extra-heavy
-   capitals: capitals are all full height with straight sides, so each
-   letter of MANGA is a big window for the art. 96px on wider screens;
-   on phones, as big as fits the width (about 45px). Always one line.
-   The name itself stays lowercase everywhere else. */
+   capitals: 64px on wider screens (smaller on narrow ones), always one
+   line. The name itself stays lowercase in text everywhere else. */
 .home .brand-name {
-  font-size: min(6rem, 12vw);
+  font-size: min(4rem, 8vw);
   white-space: nowrap;
   font-weight: 900;
   line-height: 1;
@@ -604,7 +602,7 @@ body.search-open .volume-float {
    sides and top stay (the others would sit behind the name). */
 @media (max-height: 500px) {
   .home .brand-name {
-    font-size: min(6rem, 12vw, 17vh);
+    font-size: min(4rem, 8vw, 12vh);
   }
 
   .home {
@@ -631,11 +629,11 @@ body.search-open .volume-float {
 
 /* Phones held upright (narrow, and not short). The screen is too narrow
    for a big name on one line, so the name is stacked, SANKO over MANGA,
-   and both lines are much bigger (SANKO about 80px). */
+   and both lines are much bigger (SANKO about 56px). */
 @media (max-width: 720px) and (min-height: 501px) {
-  /* 22% of the screen width makes SANKO fill most of the width. */
+  /* 15% of the screen width makes SANKO fill about two thirds of it. */
   .home .brand-name {
-    font-size: min(6rem, 22vw);
+    font-size: min(4rem, 15vw);
     line-height: 0.95;
   }
 
