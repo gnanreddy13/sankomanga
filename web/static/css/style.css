@@ -47,6 +47,22 @@ body {
   margin: 0;
 }
 
+/* A soft crossfade when going from one page of the site to another,
+   instead of a hard cut. The browser takes a picture of the old page,
+   loads the new one, and fades between them. Supported in Chrome, Edge
+   and Safari; other browsers just change pages as before. Left out for
+   people who prefer less motion. */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition {
+    navigation: auto;
+  }
+
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 0.25s;
+  }
+}
+
 body {
   min-height: 100vh;
   min-height: 100dvh; /* "dynamic" height: correct on phones with moving toolbars */
@@ -442,6 +458,18 @@ body {
     drop-shadow(-1px 0 0 #f4f4f5)
     drop-shadow(0 1px 0 #f4f4f5)
     drop-shadow(0 -1px 0 #f4f4f5);
+}
+
+/* When the art arrives after the page is already showing, it fades in
+   (over about the same time as the covers) instead of popping in. */
+.wordmark-art-image.is-fading-in {
+  animation: art-in 0.6s var(--ease) both;
+}
+
+@keyframes art-in {
+  from {
+    opacity: 0;
+  }
 }
 
 .brand-tagline {
@@ -1336,7 +1364,8 @@ body.search-open {
    ============================================================= */
 @media (prefers-reduced-motion: reduce) {
   .cover-track,
-  .home-intro > * {
+  .home-intro > *,
+  .wordmark-art-image.is-fading-in {
     animation: none;
   }
 

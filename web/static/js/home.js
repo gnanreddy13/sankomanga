@@ -93,12 +93,24 @@ function buildWordmark() {
 // showArtWhenLoaded swaps the styled word for the art image, but only once
 // the image has fully downloaded, so the name never shows half-drawn. If
 // the image is missing, the styled word simply stays.
+//
+// If the browser already has the image (a later visit), it's there from
+// the start. If it has to download it first, it fades in when it arrives
+// (.is-fading-in), so the switch from the styled word isn't a jump.
 function showArtWhenLoaded(artPart) {
   const image = new Image();
   image.className = "wordmark-art-image";
   image.alt = ""; // the heading's hidden text already says the name
-  image.addEventListener("load", () => artPart.replaceWith(image), { once: true });
   image.src = WORDMARK_ART;
+
+  if (image.complete && image.naturalWidth > 0) {
+    artPart.replaceWith(image);
+    return;
+  }
+  image.addEventListener("load", () => {
+    image.classList.add("is-fading-in");
+    artPart.replaceWith(image);
+  }, { once: true });
 }
 
 // createNameSwap builds the spot where the start of the name ("sanko")
