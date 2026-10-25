@@ -158,14 +158,15 @@ function createSound(text, index) {
 
 // takeTurns swaps the two versions of the name back and forth: the
 // English one for LATIN_SHOWN_MS, then the Japanese one for
-// JAPANESE_SHOWN_MS, and so on. While the tab is hidden it just waits
-// (nobody would see the swap).
+// JAPANESE_SHOWN_MS, and so on. While the tab is hidden or the search box
+// is open, it just waits (the name is hidden or blurred then).
 function takeTurns(swap) {
   const showingJapanese = swap.classList.contains("is-japanese");
   const wait = showingJapanese ? JAPANESE_SHOWN_MS : LATIN_SHOWN_MS;
 
   setTimeout(() => {
-    if (!document.hidden) {
+    const searching = document.body.classList.contains("search-open");
+    if (!document.hidden && !searching) {
       swap.classList.toggle("is-japanese");
     }
     takeTurns(swap);

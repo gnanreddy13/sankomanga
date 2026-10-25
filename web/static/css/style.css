@@ -581,7 +581,12 @@ body {
   to   { transform: translateX(calc(-50% - var(--row-gap) / 2)); }
 }
 
-.home.is-paused .cover-track {
+/* Paused while the tab is hidden (home.js), and while the search box is
+   open: moving covers under the overlay's blur look like they're
+   shimmering, since the blur is redrawn every frame as they shift by
+   fractions of a pixel. They carry on from the same spot afterwards. */
+.home.is-paused .cover-track,
+body.search-open .cover-track {
   animation-play-state: paused;
 }
 
