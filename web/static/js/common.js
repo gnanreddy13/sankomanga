@@ -1,6 +1,6 @@
 // Small helpers shared by every page.
 
-import { APP_NAME, TAGLINE } from "./config.js";
+import { APP_NAME, ART_WORD, TAGLINE } from "./config.js";
 
 // fillBranding puts the app name and tagline into the page: the browser
 // tab title, and any element marked with data-app-name or data-tagline.
@@ -14,6 +14,27 @@ export function fillBranding(pageTitle) {
   for (const element of document.querySelectorAll("[data-tagline]")) {
     element.textContent = TAGLINE;
   }
+  for (const link of document.querySelectorAll("[data-mini-wordmark]")) {
+    fillMiniWordmark(link);
+  }
+}
+
+// fillMiniWordmark turns a home link into the small two-tone wordmark
+// used at the top of the results and title pages: the start of the name
+// in white, ART_WORD ("manga") in grey; the CSS shows it in capitals,
+// like the big wordmark on the home page. Screen readers hear
+// "sankomanga, home".
+function fillMiniWordmark(link) {
+  const hasArtWord = ART_WORD !== "" && APP_NAME.endsWith(ART_WORD);
+  const start = hasArtWord ? APP_NAME.slice(0, -ART_WORD.length) : APP_NAME;
+
+  const dim = document.createElement("span");
+  dim.className = "mini-wordmark-dim";
+  dim.textContent = hasArtWord ? ART_WORD : "";
+
+  link.replaceChildren(start, dim);
+  link.setAttribute("aria-label", `${APP_NAME}, home`);
+  link.title = "Home";
 }
 
 // errorMessage turns an API error status code into friendly words, so

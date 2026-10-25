@@ -11,6 +11,7 @@ not rules: the design can change at any time.
 | Accent colour | One quiet neutral accent on home and results. On a title page, accents (score, links, glow) use that title's `coverColor`, falling back to the neutral accent if it's missing or too dark to read. |
 | Fonts | One clean sans-serif (Inter) for everything; titles are just larger and bolder. Japanese text falls back to the device's Japanese font. |
 | Theme | Dark only for now (no light-mode switch). |
+| Mini wordmark | On the results and title pages, top left: the home page's name shrunk to 17px, Inter 900 capitals, SANKO in white and MANGA in the faint grey (the art or dotted letters would be noise at that size). It links home and replaces the old "back to [home icon]"; screen readers hear "sankomanga, home". MANGA lightens slightly on hover and keyboard focus. Filled in from `APP_NAME` and `ART_WORD` in `config.js`. |
 | Tab icon | サ (the first sound of サンコー) in white on a black rounded square, drawn as three strokes so it looks the same on every device. One file, `web/favicon.svg`, served as `/favicon.ico` and linked from every page. |
 | Loading | The home page tells the browser up front about the scripts it will need and the covers list (preload hints), so it fetches them all at once instead of one after another. The server keeps the covers list ready, so it answers instantly. |
 | Page changes | A soft 0.25s crossfade between pages of the site (the browser's cross-page view transitions: Chrome, Edge and Safari; other browsers change pages as before). Off with "reduce motion". |
@@ -79,7 +80,7 @@ Centred, like the home page, on the same pure black.
 
 | Part | Decision |
 |---|---|
-| Header | Lined up with the left edge of the grid: "back to [home icon]" (small grey text and icon that simply turn white on hover; links home); then a smaller version of the underline search holding the current search term ("/" jumps to it and selects the text) (280px on desktop; full width on phones, lining up with both edges of the grid); then the count in small italic grey: "6 results", or "20 closest matches" when there are more pages (no grand total: AniList reports 5000 for every search). Kept to what the cards can't tell you. |
+| Header | Lined up with the left edge of the grid: the mini wordmark (links home; see "Mini wordmark" below); then a smaller version of the underline search holding the current search term ("/" jumps to it and selects the text) (280px on desktop; full width on phones, lining up with both edges of the grid); then the count in small italic grey: "6 results", or "20 closest matches" when there are more pages (no grand total: AniList reports 5000 for every search). Kept to what the cards can't tell you. |
 | Grid | A centred block about 800px wide. Balanced covers (~140px): 5 a row on laptops, 4 on tablets, 3 on phones (~105px). |
 | Card | Cover, title (up to 2 lines, then "…"), and one small dim info line like `2009 · Manga · Ongoing · ★ 8.4` ("Ongoing" only for titles still being published; missing year or score left out; on phones the line only wraps between parts). The whole card links to `/manga/{id}`. |
 | Hover | Only on devices with a real pointer (on touch screens a tap would leave it stuck). The cover lifts a few pixels with a white glow behind it (the same colour for every cover): a glow spreading below plus a faint halo, like the title page cover but a little softer so it doesn't spill onto neighbouring covers. The title brightens. Same on keyboard focus. |
@@ -100,7 +101,8 @@ magnifying glass on both pages (the underline search won).
 
 A centred block (about 780px wide), centred vertically in the window too
 (like the home page; long pages simply start at the top and scroll), with
-"back to [search icon]" above it, lined up with its left edge. It goes
+one line above it, lined up with its edges: the mini wordmark on the left
+(links home) and "back to [search icon]" on the right. "Back to" goes
 back to the same search results (never a fresh search): browser "back"
 when coming from the results page (keeps the scroll position), otherwise
 the results for the search carried in the address (`/manga/53390?q=berserk`,
