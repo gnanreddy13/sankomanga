@@ -1,5 +1,6 @@
-# Compiled binary
+# Compiled program (go build names it after the folder, or -o sankomanga)
 /manga-app
+/sankomanga
 
 # OS / editor clutter
 .DS_Store
