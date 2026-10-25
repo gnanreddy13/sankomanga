@@ -15,6 +15,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"strings"
 	"sync"
 	"time"
@@ -39,6 +40,16 @@ const (
 	// Popularity rankings barely move within hours, so we ask AniList at
 	// most about 4 times a day.
 	showcaseCacheTTL = 6 * time.Hour
+
+	// showcaseRefreshEvery is how often keepShowcaseWarm asks AniList for
+	// fresh covers: a while before the cached ones expire, so a visitor
+	// never finds them missing and has to wait for AniList.
+	showcaseRefreshEvery = 5 * time.Hour
+
+	// showcaseRetryAfter is how soon keepShowcaseWarm tries again when
+	// AniList didn't answer: soon enough to recover quickly, rarely enough
+	// not to pester AniList while it's having trouble.
+	showcaseRetryAfter = 2 * time.Minute
 
 	// maxCacheEntries caps the cache's size. Each entry is a few KB at
 	// most, so 1,000 entries is roughly 5 MB: tiny next to AniList's
@@ -189,10 +200,11 @@ func (c *cachingSource) getManga(ctx context.Context, id int) (anilistMedia, err
 	return media, nil
 }
 
+// popularManga normally answers from the cache, which keepShowcaseWarm
+// keeps filled. Asking AniList here is the fallback for when that hasn't
+// managed to yet (just after starting, or while AniList is down).
 func (c *cachingSource) popularManga(ctx context.Context) ([]anilistMedia, error) {
-	const key = "showcase"
-
-	if entry, ok := c.cache.get(key); ok {
+	if entry, ok := c.cache.get("showcase"); ok {
 		markCacheResult(ctx, cacheHit)
 		return entry.value.([]anilistMedia), nil
 	}
@@ -202,8 +214,49 @@ func (c *cachingSource) popularManga(ctx context.Context) ([]anilistMedia, error
 	if err != nil {
 		return nil, err // errors are never cached
 	}
-	c.cache.set(key, popular, nil, showcaseCacheTTL)
+	c.cache.set("showcase", popular, nil, showcaseCacheTTL)
 	return popular, nil
+}
+
+// keepShowcaseWarm keeps the home page's covers ready in the cache, so no
+// visitor ever waits for AniList (asking AniList takes about 1.7 seconds,
+// and without this the first visitor after a restart, and then one every
+// six hours, would wait that long for the covers).
+//
+// It fetches the covers straight away, then again every `every`, a while
+// before the cached ones expire. If AniList doesn't answer, it tries again
+// after `retryAfter`. It runs until ctx is cancelled (when the server
+// stops), so main runs it in its own goroutine. It's still only about five
+// requests a day, the same as before.
+func (c *cachingSource) keepShowcaseWarm(ctx context.Context, every, retryAfter time.Duration) {
+	for {
+		wait := every
+		if err := c.refreshShowcase(ctx); err != nil {
+			if ctx.Err() != nil {
+				return // the server is stopping
+			}
+			slog.Warn("could not refresh the showcase covers", "err", err, "retry_in", retryAfter)
+			wait = retryAfter
+		}
+
+		// Wait for the next refresh, unless the server stops first.
+		select {
+		case <-ctx.Done():
+			return
+		case <-time.After(wait):
+		}
+	}
+}
+
+// refreshShowcase asks the next source (AniList) for the showcase covers
+// and stores them, replacing any cached ones.
+func (c *cachingSource) refreshShowcase(ctx context.Context) error {
+	popular, err := c.next.popularManga(ctx)
+	if err != nil {
+		return err
+	}
+	c.cache.set("showcase", popular, nil, showcaseCacheTTL)
+	return nil
 }
 
 // searchCacheKey builds the cache key for a search. Upper/lower case and

@@ -25,6 +25,20 @@
   <!-- type="module" lets our scripts import from each other
        (home.js imports config.js and common.js). -->
   <script type="module" src="/static/js/home.js"></script>
+
+  <!-- Head starts for the browser. Without these, it would only find out
+       about the scripts home.js imports after downloading home.js, and
+       about the covers list after running it: each a full extra trip to
+       the server, which on a phone can be 100-300ms. With them, it fetches
+       everything at once. When home.js then asks for these, they're
+       already here (or on their way), not fetched twice.
+       "crossorigin" on the covers list makes this download match the way
+       home.js's fetch() asks for it, which the browser needs in order to
+       reuse it. -->
+  <link rel="modulepreload" href="/static/js/common.js">
+  <link rel="modulepreload" href="/static/js/config.js">
+  <link rel="modulepreload" href="/static/js/search-overlay.js">
+  <link rel="preload" href="/api/showcase" as="fetch" crossorigin>
 </head>
 <body>
   <main class="home">

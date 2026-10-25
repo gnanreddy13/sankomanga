@@ -299,3 +299,122 @@ func TestCachingSourceShowcaseErrorsNotCached(t *testing.T) {
 		t.Errorf("error was cached: source called %d times, want 2", source.popularCalls)
 	}
 }
+
+// showcaseSource is a fake source for the keepShowcaseWarm tests. Those
+// run in a background goroutine, so unlike fakeSource it guards its
+// counter with a mutex (the race detector would flag it otherwise). It
+// fails the first failFirst calls, and reports every call on the calls
+// channel so tests can wait for them without guessing at sleeps.
+type showcaseSource struct {
+	fakeSource
+	mu        sync.Mutex
+	count     int
+	failFirst int
+	calls     chan int
+}
+
+func newShowcaseSource(failFirst int) *showcaseSource {
+	return &showcaseSource{
+		fakeSource: fakeSource{popular: []anilistMedia{{ID: 1}}},
+		failFirst:  failFirst,
+		calls:      make(chan int, 100),
+	}
+}
+
+func (s *showcaseSource) popularManga(ctx context.Context) ([]anilistMedia, error) {
+	s.mu.Lock()
+	s.count++
+	n := s.count
+	s.mu.Unlock()
+
+	s.calls <- n
+	if n <= s.failFirst {
+		return nil, errUpstreamUnavailable
+	}
+	return s.popular, nil
+}
+
+// waitForCall waits until the source has been called n times, or fails
+// the test after a second.
+func waitForCall(t *testing.T, source *showcaseSource, n int) {
+	t.Helper()
+	timeout := time.After(time.Second)
+	for {
+		select {
+		case got := <-source.calls:
+			if got >= n {
+				return
+			}
+		case <-timeout:
+			t.Fatalf("source wasn't called %d times within a second", n)
+		}
+	}
+}
+
+// startWarming runs keepShowcaseWarm in the background, and returns a
+// function that stops it and waits until it has really stopped.
+func startWarming(cs *cachingSource, every, retryAfter time.Duration) (stop func()) {
+	ctx, cancel := context.WithCancel(context.Background())
+	done := make(chan struct{})
+	go func() {
+		cs.keepShowcaseWarm(ctx, every, retryAfter)
+		close(done)
+	}()
+	return func() {
+		cancel()
+		<-done
+	}
+}
+
+func TestKeepShowcaseWarmFillsCacheAtStart(t *testing.T) {
+	source := newShowcaseSource(0)
+	cs := newCachingSource(source)
+
+	stop := startWarming(cs, time.Hour, time.Hour)
+	defer stop()
+	waitForCall(t, source, 1)
+
+	// A visitor now gets the covers from the cache: no wait for AniList.
+	ctx, info := recordingContext()
+	popular, err := cs.popularManga(ctx)
+	if err != nil || len(popular) != 1 || info.cacheResult != cacheHit {
+		t.Fatalf("got %v, %v, cache=%q; want a cache hit", popular, err, info.cacheResult)
+	}
+}
+
+func TestKeepShowcaseWarmRefreshesOnSchedule(t *testing.T) {
+	source := newShowcaseSource(0)
+	cs := newCachingSource(source)
+
+	stop := startWarming(cs, 10*time.Millisecond, time.Hour)
+	defer stop()
+
+	waitForCall(t, source, 3) // the first fetch, then two refreshes
+}
+
+func TestKeepShowcaseWarmRetriesAfterFailure(t *testing.T) {
+	source := newShowcaseSource(1) // AniList fails the first time
+	cs := newCachingSource(source)
+
+	// A long refresh interval and a short retry: a second call can only
+	// come from the retry.
+	stop := startWarming(cs, time.Hour, 10*time.Millisecond)
+	defer stop()
+	waitForCall(t, source, 2)
+
+	if _, ok := cs.cache.get("showcase"); !ok {
+		t.Errorf("the retry should have filled the cache")
+	}
+}
+
+func TestKeepShowcaseWarmStopsWithServer(t *testing.T) {
+	source := newShowcaseSource(0)
+	cs := newCachingSource(source)
+
+	stop := startWarming(cs, time.Hour, time.Hour)
+	waitForCall(t, source, 1)
+
+	// stop only returns once keepShowcaseWarm has returned; if it never
+	// did, this test would hang and the test run would time out.
+	stop()
+}

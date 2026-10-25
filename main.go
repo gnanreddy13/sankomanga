@@ -25,7 +25,8 @@ func main() {
 
 	// The handlers get their manga data through the cache, which asks the
 	// real AniList client only when it doesn't already have the answer.
-	a := &app{source: newCachingSource(newAniListClient())}
+	cache := newCachingSource(newAniListClient())
+	a := &app{source: cache}
 
 	// We build an http.Server ourselves instead of calling http.ListenAndServe
 	// directly, because the shortcut has no timeouts. Without them, a slow or
@@ -53,6 +54,10 @@ func main() {
 	// a terminal sends SIGINT, and hosting platforms send SIGTERM.
 	stopSignal, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
+
+	// Keep the home page's covers ready in the background (cache.go), so
+	// no visitor waits for AniList. It stops when stopSignal is cancelled.
+	go cache.keepShowcaseWarm(stopSignal, showcaseRefreshEvery, showcaseRetryAfter)
 
 	// Run the server in the background (a goroutine), so that main is free
 	// to wait for either a stop signal or the server failing.

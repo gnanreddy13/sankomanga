@@ -192,7 +192,7 @@ screen design.
 
 - Up to 30 covers, most popular first. `covers` may be `[]`; the frontend
   then leaves the rows empty.
-- Cached on the server for 6 hours; `Cache-Control: public, max-age=3600`.
+- Cached on the server for 6 hours, and kept ready in the background: the server fetches it on startup and refreshes it every 5 hours (retrying after 2 minutes if AniList is down), so visitors never wait for AniList. `Cache-Control: public, max-age=3600`.
 - Counts towards the per-IP limit like the other data endpoints.
 
 ---
