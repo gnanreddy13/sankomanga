@@ -12,6 +12,11 @@
 
 import { addClearButton, preventEmptySearch } from "./common.js";
 
+// How long the closing fade takes (the same as .is-closing in style.css).
+const CLOSE_MS = 200;
+
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
 export function setUpSearchOverlay() {
   const overlay = document.querySelector(".search-overlay");
   const form = overlay.querySelector(".search");
@@ -37,7 +42,11 @@ export function setUpSearchOverlay() {
   // Where the keyboard focus was before opening, to put it back on close.
   let focusBeforeOpening = null;
 
-  const isOpen = () => !overlay.hidden;
+  // While closing, the overlay is still on screen (fading out) but counts
+  // as closed: typing or clicking can open it again straight away.
+  let closingTimer = null;
+
+  const isOpen = () => !overlay.hidden && closingTimer === null;
 
   // open shows the search box, optionally starting with some text (the
   // letter that was typed to open it), and puts the cursor in it.
@@ -45,6 +54,7 @@ export function setUpSearchOverlay() {
     if (isOpen()) {
       return;
     }
+    stopClosing(); // opened again while it was still fading out
     focusBeforeOpening = document.activeElement;
     overlay.hidden = false;
     document.body.classList.add("search-open");
@@ -72,10 +82,29 @@ export function setUpSearchOverlay() {
     }
   }
 
+  // hide fades the overlay out (see .is-closing in style.css), then hides
+  // it for good. The page is usable straight away; only the picture of
+  // the overlay lingers for the fade. No fade with "reduce motion".
   function hide() {
-    overlay.hidden = true;
     document.body.classList.remove("search-open");
     focusBeforeOpening?.focus?.();
+
+    if (reduceMotion) {
+      overlay.hidden = true;
+      return;
+    }
+    overlay.classList.add("is-closing");
+    closingTimer = setTimeout(() => {
+      overlay.hidden = true;
+      stopClosing();
+    }, CLOSE_MS);
+  }
+
+  // stopClosing ends a fade-out early (or tidies up after one).
+  function stopClosing() {
+    clearTimeout(closingTimer);
+    closingTimer = null;
+    overlay.classList.remove("is-closing");
   }
 
   // The browser's back button / back gesture while the search is open.

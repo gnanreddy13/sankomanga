@@ -1255,6 +1255,34 @@ body.search-open {
   to   { opacity: 1; }
 }
 
+/* Closing: the reverse of opening, a little quicker. home.js adds
+   .is-closing, waits for this to finish, then hides the overlay. Clicks
+   pass through straight away, so the page is usable at once. */
+.search-overlay.is-closing {
+  pointer-events: none;
+  animation: overlay-out 0.2s var(--ease) both;
+}
+
+.search-overlay.is-closing .search--overlay {
+  animation: sink-out 0.2s var(--ease) both;
+}
+
+@keyframes overlay-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+@keyframes sink-out {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
 /* The search box itself: the same grey line style, just bigger. */
 .search--overlay {
   width: min(440px, 100%);
@@ -1377,7 +1405,9 @@ body.search-open {
   }
 
   .search-overlay,
-  .search--overlay {
+  .search--overlay,
+  .search-overlay.is-closing,
+  .search-overlay.is-closing .search--overlay {
     animation: none;
   }
 }
