@@ -45,22 +45,27 @@
              (taking turns with サンコー), then MANGA as manga art. -->
         <h1 class="brand-name" data-app-name></h1>
         <p class="brand-tagline" data-tagline></p>
+
+        <!-- A caption row under the name, lined up with its edges: the
+             search hint on the left, the AniList credit on the right. -->
+        <div class="home-captions">
+          <!-- A real button, so keyboard and screen-reader users can open
+               the search too. The CSS shows the wording that fits the
+               device. -->
+          <button class="search-hint" type="button" aria-haspopup="dialog">
+            <span class="search-hint--keys">Type to search</span>
+            <span class="search-hint--touch">Tap to search</span>
+          </button>
+
+          <!-- The AniList credit, here instead of in a footer (the other
+               pages keep theirs). AniList's official logo, loaded from
+               their own server; the alt text means screen readers still
+               announce "Data from AniList". -->
+          <p class="home-credit">
+            Data from <a class="footer-logo-link" href="https://anilist.co" target="_blank" rel="noopener noreferrer"><img src="https://anilist.co/img/icons/icon.svg" alt="AniList" width="14" height="14"></a>
+          </p>
+        </div>
       </div>
-
-      <!-- A real button, so keyboard and screen-reader users can open the
-           search too. The CSS shows the wording that fits the device. -->
-      <button class="search-hint" type="button" aria-haspopup="dialog">
-        <span class="search-hint--keys">Type to search</span>
-        <span class="search-hint--touch">Tap anywhere to search</span>
-      </button>
-
-      <!-- The AniList credit, here in the middle instead of in a footer
-           (the other pages keep theirs). AniList's official logo, loaded
-           from their own server; the alt text means screen readers still
-           announce "Data from AniList". -->
-      <p class="home-credit">
-        Data from <a class="footer-logo-link" href="https://anilist.co" target="_blank" rel="noopener noreferrer"><img src="https://anilist.co/img/icons/icon.svg" alt="AniList" width="18" height="18"></a>
-      </p>
     </div>
 
     <!-- Bottom: the same covers, gliding the other way. -->

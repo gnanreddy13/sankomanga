@@ -83,12 +83,10 @@ body {
   color: var(--text-faint);
 }
 
-/* On the home page the same credit sits in the middle, under the search
-   hint, instead of in a footer. Same look, no footer padding. */
+/* On the home page the credit sits in the caption row under the name
+   (see .home-captions) instead of in a footer. */
 .home-credit {
   margin: 0;
-  font-size: 0.8125rem;
-  color: var(--text-faint);
 }
 
 .site-footer a {
@@ -316,13 +314,12 @@ body {
   overflow: hidden; /* the rows run past both edges of the screen */
 }
 
-/* Middle: name, tagline and the search hint, centred. */
+/* Middle: the name, tagline and caption row, centred. */
 .home-intro {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 20px; /* space between the tagline and the search hint */
   width: min(960px, calc(100% - 32px));
   margin: 0 auto;
   text-align: center;
@@ -465,6 +462,39 @@ body {
   animation-delay: 0.12s;
 }
 
+/* The block holding the name, tagline and caption row. It's exactly as
+   wide as the name (the name never wraps), which is what lets the
+   caption row line up with the name's edges. */
+.brand {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+/* The caption row: the search hint against the name's left edge, the
+   AniList credit against its right edge, in small, spaced-out capitals,
+   like the caption under a magazine title. */
+.home-captions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 24px;
+  font-size: 0.6875rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+/* The hint keeps its padding (a bigger area to click), and the negative
+   margin pulls it back so its text lines up with the name's edge. */
+.home-captions .search-hint {
+  margin: -6px -10px;
+  font-size: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit; /* buttons don't take it from their parent by default */
+}
+
 @keyframes rise-in {
   from {
     opacity: 0;
@@ -556,11 +586,84 @@ body {
   opacity: 1;
 }
 
-/* Phones: smaller covers and gaps, so the middle keeps enough room. */
+/* Phones. The screen is too narrow for a big name on one line, so the
+   name is stacked, SANKO over MANGA, and both lines are much bigger
+   (SANKO about 80px). The covers then take whatever height is left. */
 @media (max-width: 720px) {
+  /* Three bands: top row, middle, bottom row. The middle is as tall as
+     its content; the two rows share the rest equally (1fr each). The
+     gap keeps about 55px between the covers and the middle (a little
+     less on short phones). */
   .home {
-    --row-h: min(26vh, 200px);
+    display: grid;
+    /* One column exactly as wide as the screen: without this, the column
+       would grow to fit the long strips of covers. */
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto minmax(0, 1fr);
+    gap: clamp(36px, 6.8vh, 55px);
+    /* Exactly the screen's height, so "the rest" (1fr) is measured from
+       the screen rather than from the covers. ("flex: none" stops the
+       page's "fill the remaining space" rule, flex: 1, from overriding
+       this height.) */
+    flex: none;
+    height: 100vh;
+    height: 100dvh;
     --row-gap: 10px;
+  }
+
+  /* Each cover fills its row's height (and is as wide as that makes
+     it), up to 340px on very tall phones. The strips line up against
+     the middle, so any spare height on a very tall phone goes to the
+     screen's edges rather than around the name. */
+  /* Grid items won't shrink below their content's natural height unless
+     told they may; the covers should take the row's height, not set it. */
+  .cover-row {
+    min-height: 0;
+  }
+
+  .cover-track {
+    height: 100%;
+  }
+
+  .cover-row--top .cover-track {
+    align-items: flex-end;
+  }
+
+  .cover-row--bottom .cover-track {
+    align-items: flex-start;
+  }
+
+  .row-cover {
+    height: 100%;
+    max-height: 340px;
+  }
+
+  /* The stacked name. 22% of the screen width makes SANKO fill most of
+     the width. */
+  .home .brand-name {
+    font-size: min(6rem, 22vw);
+    line-height: 0.95;
+  }
+
+  .wordmark {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* MANGA (the art) as wide as SANKO. "width: 0" stops the image's own
+     size from widening the name; "min-width: 100%" then stretches it to
+     the width the SANKO line set, and the height follows. */
+  .wordmark-art-image {
+    width: 0;
+    min-width: 100%;
+    height: auto;
+    margin: 0.1em 0 0;
+  }
+
+  /* No neighbour to keep away from on its own line. */
+  .wordmark-japanese {
+    margin-right: 0;
   }
 }
 

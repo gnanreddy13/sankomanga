@@ -75,6 +75,7 @@ function buildWordmark() {
   forScreenReaders.textContent = APP_NAME;
 
   const visible = document.createElement("span");
+  visible.className = "wordmark";
   visible.setAttribute("aria-hidden", "true");
   visible.append(createNameSwap(plainPart));
 
@@ -219,10 +220,13 @@ function fillRow(row, covers) {
 
   // One copy must be at least as wide as the screen, or a gap would show
   // at the end of the loop. 15 covers are plenty on most screens (so no
-  // cover shows twice); only very wide screens repeat the list.
+  // cover shows twice); only very wide screens repeat the list. The limit
+  // of 10 copies is a safety net: if the covers ever had no width (say, a
+  // very short screen), the strip would never get wider and this would
+  // otherwise repeat forever.
   let oneCopy = covers;
   track.replaceChildren(...oneCopy.map(createCover));
-  while (track.scrollWidth < window.innerWidth) {
+  for (let copies = 1; copies < 10 && track.scrollWidth < window.innerWidth; copies++) {
     oneCopy = [...oneCopy, ...covers];
     track.append(...covers.map(createCover));
   }
