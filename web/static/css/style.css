@@ -420,10 +420,22 @@ body {
   filter: none;
 }
 
-/* MANGA, in grey after the white SANKO, like the small wordmark on the
-   other pages. */
+/* MANGA, as a white outline after the solid white SANKO: hollow letters
+   with a line about 1.5% of the font size (1.5px on a laptop), never
+   thinner than 1px so it stays crisp on phones. (The small wordmark on
+   the other pages keeps MANGA in grey: an outline that small would be
+   too faint.)
+
+   Inter draws each letter from overlapping shapes, and a plain outline
+   would trace the hidden joins too (stray lines inside A, N and G). So
+   the outline is drawn first, twice as thick, and the letters are then
+   filled with the page's black on top ("paint-order: stroke fill"): the
+   fill covers the inner half of the line, and the stray joins with it,
+   leaving a clean outline of the right thickness. */
 .wordmark-grey {
-  color: var(--text-faint);
+  color: var(--bg);
+  -webkit-text-stroke: max(2px, 0.032em) var(--text);
+  paint-order: stroke fill;
 }
 
 .brand-tagline {
