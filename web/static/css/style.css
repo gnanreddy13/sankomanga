@@ -422,9 +422,8 @@ body {
 
 /* MANGA, as a white outline after the solid white SANKO: hollow letters
    with a line about 1.5% of the font size (1.5px on a laptop), never
-   thinner than 1px so it stays crisp on phones. (The small wordmark on
-   the other pages keeps MANGA in grey: an outline that small would be
-   too faint.)
+   thinner than 1px so it stays crisp on phones. The small wordmark on
+   the other pages uses the same outline, at 1px (.mini-wordmark-dim).
 
    Inter draws each letter from overlapping shapes, and a plain outline
    would trace the hidden joins too (stray lines inside A, N and G). So
@@ -685,10 +684,10 @@ body.search-open .volume-float {
   margin-bottom: 36px;
 }
 
-/* The small SANKOMANGA wordmark at the top of the results and title
+/* The small SANKOMANGA wordmark at the top of the results, title and 404
    pages, linking home: the home page's name, shrunk to 17px. SANKO in
-   white, MANGA in the faint grey (at this size the manga art would just
-   look like noise). On hover or keyboard focus, MANGA lights up a little. */
+   solid white, MANGA as a white outline, like the big one. On hover or
+   keyboard focus, MANGA's hollow letters fill in with a faint grey. */
 .mini-wordmark {
   display: inline-flex;
   align-items: center;
@@ -703,14 +702,19 @@ body.search-open .volume-float {
   border-radius: 4px; /* only shows in the keyboard focus outline */
 }
 
+/* The outline is 1px here (drawn 2px and half covered by the fill; see
+   .wordmark-grey for why). The fill is the page's black, so the letters
+   look hollow. */
 .mini-wordmark-dim {
-  color: var(--text-faint);
+  color: var(--bg);
+  -webkit-text-stroke: 2px var(--text);
+  paint-order: stroke fill;
   transition: color 0.2s;
 }
 
 .mini-wordmark:hover .mini-wordmark-dim,
 .mini-wordmark:focus-visible .mini-wordmark-dim {
-  color: var(--text-muted);
+  color: var(--text-faint);
 }
 
 .mini-wordmark:focus-visible {
