@@ -228,7 +228,7 @@ func TestMangaDetailSuccess(t *testing.T) {
 
 	rec := serve(source, http.MethodGet, "/api/manga/53390")
 
-	// This is the "Target detail response" from CLAUDE.md.
+	// This is the example detail response from docs/api-contract.md.
 	assertJSON(t, rec, http.StatusOK, `{
 		"id": 53390, "title": "Shingeki no Kyojin", "subtitle": "Attack on Titan",
 		"format": "Manga", "status": "Finished", "year": 2009,

@@ -9,3 +9,8 @@
 
 # Local environment overrides
 .env
+
+# Local notes and tool settings used while building the project
+# (kept on this computer, not published)
+/CLAUDE.md
+/.claude/

@@ -26,7 +26,8 @@ var (
 	whitespaceRun = regexp.MustCompile(`\s+`)
 
 	// sourceCredit matches a paragraph that is only a credit like
-	// "(Source: VIZ Media)". We drop these (see Attribution in CLAUDE.md).
+	// "(Source: VIZ Media)". We drop these: the site credits AniList on
+	// every page instead (see "Synopsis" in docs/api-contract.md).
 	sourceCredit = regexp.MustCompile(`(?i)^\(source:.*\)$`)
 )
 
