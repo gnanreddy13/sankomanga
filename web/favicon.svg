@@ -1,1 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="8" fill="#09090b"/><rect x="9" y="7" width="14" height="18" rx="2" fill="#e9e5dc"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- sankomanga's tab icon: サ, the first sound of サンコー (sankō), in
+       white on a black rounded square. Drawn as three strokes rather than
+       typed text, so it looks the same on every device, whatever fonts it
+       has: a crossbar, a short left stroke, and a long right stroke that
+       curves down to the left. Served as /favicon.ico (see serveFavicon
+       in web.go) and linked from every page. -->
+  <rect width="32" height="32" rx="7" fill="#000"/>
+  <g fill="none" stroke="#f4f4f5" stroke-width="3.6" stroke-linecap="round">
+    <path d="M6.5 12h19"/>
+    <path d="M11.5 6.5v10"/>
+    <path d="M20.5 6.5v11c0 5-3 8.5-8 9.5"/>
+  </g>
+</svg>

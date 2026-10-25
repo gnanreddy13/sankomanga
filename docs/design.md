@@ -11,6 +11,7 @@ not rules: the design can change at any time.
 | Accent colour | One quiet neutral accent on home and results. On a title page, accents (score, links, glow) use that title's `coverColor`, falling back to the neutral accent if it's missing or too dark to read. |
 | Fonts | One clean sans-serif (Inter) for everything; titles are just larger and bolder. Japanese text falls back to the device's Japanese font. |
 | Theme | Dark only for now (no light-mode switch). |
+| Tab icon | サ (the first sound of サンコー) in white on a black rounded square, drawn as three strokes so it looks the same on every device. One file, `web/favicon.svg`, served as `/favicon.ico` and linked from every page. |
 | Loading | The home page tells the browser up front about the scripts it will need and the covers list (preload hints), so it fetches them all at once instead of one after another. The server keeps the covers list ready, so it answers instantly. |
 | Page changes | A soft 0.25s crossfade between pages of the site (the browser's cross-page view transitions: Chrome, Edge and Safari; other browsers change pages as before). Off with "reduce motion". |
 | Footer | "Data from" followed by AniList's official logo (18px, its original colours, loaded from `anilist.co/img/icons/icon.svg`, alt text "AniList"), linking to anilist.co, on every page (on the home page it sits in the middle content instead of a footer). AniList's terms only regulate the AniList *name* in app names; they say nothing about the logo. Never recolour the logo. |
