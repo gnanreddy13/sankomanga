@@ -44,9 +44,19 @@ const LOAD_AHEAD_PX = 300;
 // How often to check which covers have come near the screen.
 const CHECK_EVERY_MS = 1000;
 
+// After the screen is rotated or the window resized, how long to wait for
+// it to settle before rebuilding the rows (a window being dragged to a
+// new size sends many resize events; this rebuilds once, at the end).
+const RESIZE_SETTLE_MS = 250;
+
 const home = document.querySelector(".home");
 const topRow = document.querySelector(".cover-row--top");
 const bottomRow = document.querySelector(".cover-row--bottom");
+
+// Each row's covers, kept so the row can be rebuilt after a resize, and
+// each row's image-loading timer, so a rebuild can stop the old one.
+const rowCovers = new Map();
+const rowLoaders = new Map();
 
 fillBranding();
 buildWordmark();
@@ -54,6 +64,7 @@ loadJapaneseFont();
 setUpSearchOverlay();
 loadCovers();
 pauseWhileHidden();
+refillRowsAfterResize();
 
 // --- The wordmark ----------------------------------------------------------
 
@@ -230,6 +241,8 @@ async function loadCovers() {
 // starts again, which looks like an endless row.
 function fillRow(row, covers) {
   const track = row.querySelector(".cover-track");
+  rowCovers.set(row, covers);
+  clearInterval(rowLoaders.get(row)); // stop loading images for an older strip
 
   // One copy must be at least as wide as the screen, or a gap would show
   // at the end of the loop. 15 covers are plenty on most screens (so no
@@ -249,7 +262,7 @@ function fillRow(row, covers) {
   track.append(...oneCopy.map(createCover));
 
   // Download each image only when its cover nears the screen.
-  loadImagesNearScreen(track);
+  rowLoaders.set(row, loadImagesNearScreen(track));
 
   // The same speed for both rows, whatever their length: the time to
   // slide one copy's width.
@@ -298,6 +311,7 @@ function loadImagesNearScreen(track) {
 
   const timer = setInterval(check, CHECK_EVERY_MS);
   check(); // the covers already on screen load straight away
+  return timer;
 }
 
 // loadImage adds a cover's image. It offers the browser both sizes and
@@ -316,6 +330,38 @@ function loadImage(item) {
   image.src = item.dataset.src; // for very old browsers without srcset
 
   item.append(image);
+}
+
+// refillRowsAfterResize rebuilds both rows once the screen has been
+// rotated or the window resized. The covers' size follows the screen (the
+// CSS does that), but how many copies a strip needs to cover the screen's
+// width, and how long one loop takes at the gliding speed, were worked
+// out for the old size: a phone turned sideways can be twice as wide with
+// covers half as tall, which would leave a gap at the end of the loop.
+// (The images are already downloaded, so a rebuild is quick.)
+function refillRowsAfterResize() {
+  let lastWidth = window.innerWidth;
+  let lastHeight = window.innerHeight;
+  let settleTimer = null;
+
+  window.addEventListener("resize", () => {
+    clearTimeout(settleTimer);
+    settleTimer = setTimeout(() => {
+      // Phones also send "resize" when their toolbars slide in or out; a
+      // small change in height alone isn't worth a rebuild.
+      const widthChanged = window.innerWidth !== lastWidth;
+      const heightChangedALot = Math.abs(window.innerHeight - lastHeight) > 120;
+      if (!widthChanged && !heightChangedALot) {
+        return;
+      }
+      lastWidth = window.innerWidth;
+      lastHeight = window.innerHeight;
+
+      for (const [row, covers] of rowCovers) {
+        fillRow(row, covers);
+      }
+    }, RESIZE_SETTLE_MS);
+  });
 }
 
 // pauseWhileHidden stops the gliding while the browser tab isn't visible,

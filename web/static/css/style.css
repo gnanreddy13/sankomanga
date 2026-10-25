@@ -619,21 +619,21 @@ body.search-open .cover-track {
   opacity: 1;
 }
 
-/* Phones. The screen is too narrow for a big name on one line, so the
-   name is stacked, SANKO over MANGA, and both lines are much bigger
-   (SANKO about 80px). The covers then take whatever height is left. */
-@media (max-width: 720px) {
+/* Phones, and short screens like a phone turned sideways. The covers
+   take whatever height the name doesn't need, so the page always fits
+   the screen exactly: no scrolling, no big empty bands. */
+@media (max-width: 720px), (max-height: 500px) {
   /* Three bands: top row, middle, bottom row. The middle is as tall as
      its content; the two rows share the rest equally (1fr each). The
-     gap keeps about 55px between the covers and the middle (a little
-     less on short phones). */
+     gap keeps about 55px between the covers and the middle (less on
+     short screens). */
   .home {
     display: grid;
     /* One column exactly as wide as the screen: without this, the column
        would grow to fit the long strips of covers. */
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: minmax(0, 1fr) auto minmax(0, 1fr);
-    gap: clamp(36px, 6.8vh, 55px);
+    gap: clamp(20px, 6.8vh, 55px);
     /* Exactly the screen's height, so "the rest" (1fr) is measured from
        the screen rather than from the covers. ("flex: none" stops the
        page's "fill the remaining space" rule, flex: 1, from overriding
@@ -644,10 +644,6 @@ body.search-open .cover-track {
     --row-gap: 10px;
   }
 
-  /* Each cover fills its row's height (and is as wide as that makes
-     it), up to 340px on very tall phones. The strips line up against
-     the middle, so any spare height on a very tall phone goes to the
-     screen's edges rather than around the name. */
   /* Grid items won't shrink below their content's natural height unless
      told they may; the covers should take the row's height, not set it. */
   .cover-row {
@@ -658,6 +654,8 @@ body.search-open .cover-track {
     height: 100%;
   }
 
+  /* The strips line up against the middle, so any spare height on a very
+     tall phone goes to the screen's edges rather than around the name. */
   .cover-row--top .cover-track {
     align-items: flex-end;
   }
@@ -666,13 +664,32 @@ body.search-open .cover-track {
     align-items: flex-start;
   }
 
+  /* Each cover fills its row's height (and is as wide as that makes it),
+     up to 340px on very tall phones. */
   .row-cover {
     height: 100%;
     max-height: 340px;
   }
+}
 
-  /* The stacked name. 22% of the screen width makes SANKO fill most of
-     the width. */
+/* Short screens (a phone turned sideways): the name stays on one line,
+   but is sized by the screen's height too, so it leaves the covers
+   enough room. */
+@media (max-height: 500px) {
+  .home .brand-name {
+    font-size: min(6rem, 12vw, 17vh);
+  }
+
+  .home-captions {
+    margin-top: 16px;
+  }
+}
+
+/* Phones held upright (narrow, and not short). The screen is too narrow
+   for a big name on one line, so the name is stacked, SANKO over MANGA,
+   and both lines are much bigger (SANKO about 80px). */
+@media (max-width: 720px) and (min-height: 501px) {
+  /* 22% of the screen width makes SANKO fill most of the width. */
   .home .brand-name {
     font-size: min(6rem, 22vw);
     line-height: 0.95;
