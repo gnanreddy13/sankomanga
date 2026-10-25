@@ -1,0 +1,34 @@
+# Runs the same checks as the README's "Testing" section on GitHub, for
+# every push and pull request: formatting (gofmt), common mistakes
+# (go vet), and all the tests with the race detector. GitHub then shows a
+# ✓ or ✗ next to each commit.
+name: Tests
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read # only needs to read the code
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get the code
+        uses: actions/checkout@v5
+
+      - name: Install Go (the version in go.mod)
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+
+      - name: Check formatting
+        # gofmt -l lists files that aren't formatted; the step fails if any are.
+        run: test -z "$(gofmt -l .)" || (gofmt -l . && exit 1)
+
+      - name: Check for common mistakes
+        run: go vet ./...
+
+      - name: Run the tests
+        run: go test -race ./...

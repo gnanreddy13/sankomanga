@@ -1,5 +1,4 @@
-# Compiled program (go build names it after the folder, or -o sankomanga)
-/manga-app
+# The compiled program (go build names it "sankomanga", after the module)
 /sankomanga
 
 # OS / editor clutter

@@ -1,5 +1,7 @@
 # sankomanga
 
+[![Tests](https://github.com/gnanreddy13/sankomanga/actions/workflows/test.yml/badge.svg)](https://github.com/gnanreddy13/sankomanga/actions/workflows/test.yml)
+
 A minimalist, read-only reference site for Japanese manga: search a title,
 browse the results, and see the key facts on a title page, with a link out
 to AniList. No accounts, no lists, no reading.
@@ -91,6 +93,10 @@ two parts of the program touching the same data at once.
 ```bash
 gofmt -l . && go vet ./... && go test -race ./...
 ```
+
+GitHub runs these same checks on every push
+([.github/workflows/test.yml](.github/workflows/test.yml)) and shows a ✓ or
+✗ next to each commit; the badge at the top shows the latest result.
 
 ## The API
 
