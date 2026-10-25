@@ -43,53 +43,44 @@
 <body>
   <main class="home">
 
-    <!-- Top: a row of popular covers gliding slowly to the left. home.js
-         fills both rows. aria-hidden hides them from screen readers,
-         since they're only decoration. -->
-    <div class="cover-row cover-row--top" aria-hidden="true">
-      <div class="cover-track"></div>
-    </div>
+    <!-- A few popular manga covers floating around the name. home.js
+         places the covers. aria-hidden hides them from screen readers, since they're
+         only decoration. -->
+    <div class="volumes" aria-hidden="true"></div>
 
-    <!-- Middle: name and tagline, then a quiet hint instead of a search
-         bar. The search box opens on top of the page (see
-         .search-overlay below and search-overlay.js). -->
+    <!-- In the middle: the name and tagline. The search box opens on top
+         of the page (see .search-overlay below and search-overlay.js). -->
     <div class="home-intro">
       <div class="brand">
         <!-- home.js turns the name into the wordmark: SANKO in white
-             (taking turns with サンコー), then MANGA as manga art. -->
+             (taking turns with サンコー), then MANGA in grey. -->
         <h1 class="brand-name" data-app-name></h1>
         <p class="brand-tagline" data-tagline></p>
-
-        <!-- A caption row under the name, lined up with its edges: the
-             search hint on the left, the AniList credit on the right. -->
-        <div class="home-captions">
-          <!-- A real button, so keyboard and screen-reader users can open
-               the search too. The CSS shows the wording that fits the
-               device. -->
-          <button class="search-hint" type="button" aria-haspopup="dialog">
-            <span class="search-hint--keys">Type to search</span>
-            <span class="search-hint--touch">Tap to search</span>
-          </button>
-
-          <!-- The AniList credit, here instead of in a footer (the other
-               pages keep theirs). AniList's official logo, loaded from
-               their own server; the alt text means screen readers still
-               announce "Data from AniList". -->
-          <p class="home-credit">
-            Data from <a class="footer-logo-link" href="https://anilist.co" target="_blank" rel="noopener noreferrer"><img src="https://anilist.co/img/icons/icon.svg" alt="AniList" width="14" height="14"></a>
-          </p>
-        </div>
       </div>
     </div>
 
-    <!-- Bottom: the same covers, gliding the other way. -->
-    <div class="cover-row cover-row--bottom" aria-hidden="true">
-      <div class="cover-track"></div>
+    <!-- The small print, in the bottom corners: the search hint on the
+         left, the AniList credit on the right. -->
+    <div class="home-corners">
+      <!-- A real button, so keyboard and screen-reader users can open the
+           search too. The CSS shows the wording that fits the device. -->
+      <button class="search-hint" type="button" aria-haspopup="dialog">
+        <span class="search-hint--keys">Type to search</span>
+        <span class="search-hint--touch">Tap to search</span>
+      </button>
+
+      <!-- The AniList credit, here instead of in a footer (the other pages
+           keep theirs). AniList's official logo, loaded from their own
+           server; the alt text means screen readers still announce "Data
+           from AniList". -->
+      <p class="home-credit">
+        Data from <a class="footer-logo-link" href="https://anilist.co" target="_blank" rel="noopener noreferrer"><img src="https://anilist.co/img/icons/icon.svg" alt="AniList" width="14" height="14"></a>
+      </p>
     </div>
   </main>
 
   <!-- The search box, opened on top of the blurred page by typing, "/",
-       clicking or tapping anywhere, or the hint above. Hidden until then.
+       clicking or tapping anywhere, or the hint in the corner. Hidden until then.
        It's a plain HTML form: Enter goes to /search?q=... -->
   <div class="search-overlay" role="dialog" aria-modal="true" aria-label="Search manga" hidden>
     <form class="search search--line search--overlay" action="/search" method="get" role="search">

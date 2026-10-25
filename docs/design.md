@@ -11,7 +11,7 @@ not rules: the design can change at any time.
 | Accent colour | One quiet neutral accent on home and results. On a title page, accents (score, links, glow) use that title's `coverColor`, falling back to the neutral accent if it's missing or too dark to read. |
 | Fonts | One clean sans-serif (Inter) for everything; titles are just larger and bolder. Japanese text falls back to the device's Japanese font. |
 | Theme | Dark only for now (no light-mode switch). |
-| Mini wordmark | On the results and title pages, top left: the home page's name shrunk to 17px, Inter 900 capitals, SANKO in white and MANGA in the faint grey (the art or dotted letters would be noise at that size). It links home and replaces the old "back to [home icon]" (also on the 404 page, centred under the message); screen readers hear "sankomanga, home". MANGA lightens slightly on hover and keyboard focus. Filled in from `APP_NAME` and `ART_WORD` in `config.js`. |
+| Mini wordmark | On the results and title pages, top left: the home page's name shrunk to 17px: the same Inter 900 capitals, SANKO in white and MANGA in the faint grey. It links home and replaces the old "back to [home icon]" (also on the 404 page, centred under the message); screen readers hear "sankomanga, home". MANGA lightens slightly on hover and keyboard focus. Filled in from `APP_NAME` and `GREY_WORD` in `config.js`. |
 | Tab icon | サ (the first sound of サンコー) in white on a black rounded square, drawn as three strokes so it looks the same on every device. One file, `web/favicon.svg`, served as `/favicon.ico` and linked from every page. |
 | Loading | The home page tells the browser up front about the scripts it will need and the covers list (preload hints), so it fetches them all at once instead of one after another. The server keeps the covers list ready, so it answers instantly. |
 | Page changes | A soft 0.25s crossfade between pages of the site (the browser's cross-page view transitions: Chrome, Edge and Safari; other browsers change pages as before). Off with "reduce motion". |
@@ -19,32 +19,34 @@ not rules: the design can change at any time.
 
 ## Home screen
 
-No box: the content sits directly on the page. The same layout on every
-screen size: a row of popular covers along the top, the name, tagline and
-search hint centred in the middle, and another row of covers along the
-bottom.
+No box: the content sits directly on the page. Inspired by editorial
+"hero" pages: lots of black, the name and tagline in the middle, a few
+popular manga covers floating around them, and the small print
+in the bottom corners.
 
 | Part | Decision |
 |---|---|
 | Background | Pure black (`#000`). |
 | Small text | The faintest grey is `#77777f` (4.7:1 contrast on black, above the 4.5:1 small text needs). Never darker. |
 | Size | Everything kept small and quiet. |
-| Covers (top and bottom) | Two rows of popular covers (from `/api/showcase`: the 30 most popular, ecchi excluded, shuffled on every visit). To keep the page light, each cover's image downloads only when the cover glides within 300px of the screen (about 18 at first, then one every few seconds), and the browser picks the size: 230px-wide images on ordinary screens, 460px on sharp "Retina" screens. Each row gets its own 15, so every cover on the screen is different (only screens wider than about 3,000px would repeat a cover within a row). Each cover has a soft white glow behind it, the same for every cover (like the results and title page glows). Each row glides endlessly and slowly (22px a second): the top one to the left, the bottom one to the right. Covers are about 280px tall on a laptop (at most 30% of the screen height). On phones they take whatever height the middle content doesn't need (at most 340px: about 160px on small phones, 220px on a standard one, 270px on the largest), with about 55px between the covers and the middle (a little less on short phones: about 46px at 667px tall, 38px at 568px). Phones turned sideways (and any screen under 500px tall) work the same way: the name stays on one line but is sized by the height too (at most 17% of it), so the covers keep about 85px and the gaps about 26px on a typical sideways phone. After a rotation or window resize, the rows are rebuilt for the new size (once it settles), so the loop never shows a gap, with 14px gaps (10px on phones) and 8px rounded corners. Both ends of each row fade softly into the black. Purely decorative: no hover or click. |
-| Wordmark (middle) | On one line on wider screens: the name in Inter 900 capitals (96px). On phones it's stacked, SANKO over MANGA, much bigger (SANKO about 80px, 22% of the screen width), with MANGA's art stretched to exactly the width of the SANKO line, so the art is about twice as big as it would be on one line. SANKO is plain white, taking turns with サンコー (the Japanese touch; it reads "sankō", like 参考, "reference"; extra-heavy Noto Sans JP, set a little smaller to match the capitals' height, only its four characters downloaded). The swap goes sound by sound, left to right, each 130ms after the one before: SA becomes サ, N becomes ン, KO becomes コー, so the name visibly translates itself (`NAME_SOUNDS` in `config.js`). Each sound leaving drifts up, blurs and fades while its katakana settles in from below (0.7s). SANKO shows for 6 seconds (including before the first swap, so people read it first), サンコー for 3: the English name is the one people need to remember. Both share one spot, as wide as the wider of the two, so MANGA never moves. With "reduce motion" on, it stays SANKO; swapping pauses while the tab is hidden. Then MANGA as art: an image of the word with black-and-white manga art inside each letter (`web/static/img/manga-art.png`, transparent around the letters, cropped tight to them), as tall as the capitals and on the same baseline, with a thin white outline traced around the letters (their own black outlines vanish on black). Its exact space is kept from the very first moment (the image's size is written in `home.js`, next to its path; update it if the image changes), so nothing moves when it arrives: the space stays empty while it downloads, then the art fades in over 0.6s (no fade with "reduce motion"; no fade if the browser already has it). If the file is missing, the styled letters below are shown instead. Without the image, MANGA shows as outlined capitals filled with fine white screentone dots. The art must be original before the site goes public (no existing series' characters); the current file is a private preview and is git-ignored. Screen readers hear just "sankomanga"; the katakana is decoration. Other pages keep the plain lowercase name. |
-| Below the wordmark | The tagline, centred. Then, 24px below, a caption row exactly as wide as the name, like the caption under a magazine title: the search hint against the name's left edge, "Data from [AniList logo]" against its right edge, both in small (11px), spaced-out, faint capitals, with a 14px logo. The home page has no footer; the other pages keep theirs. No search bar on the page. (A short hairline rule under the tagline was tried and removed.) |
+| Covers (around the name) | Popular manga (from `/api/showcase`: the 30 most popular, ecchi excluded, shuffled on every visit), shown as flat covers floating around the name, like the covers on the other pages: 6px rounded corners, with a strong white glow (a bright halo close around each cover fading into a wider haze). 8 on laptops (about 110px wide), placed by hand around the name and never over it; 4 bigger ones on upright phones (two above, two below); 5 on phones turned sideways (sides and top). They stay alive quietly: each bobs 5px up and down at its own pace (7–9s); on desktops they shift a few pixels with the mouse, nearer ones more (depth); and every 5 seconds one cover dissolves into a different popular manga: the new cover is downloaded first, then fades in on top of the old one over 1.2s with an even ease-in-out, so the book never goes blank (each volume taking turns, never the same twice in a row). Covers load at the size that fits the screen (230px or 460px images), and hidden volumes on phones never download. Purely decorative: no hover or click. |
+| Wordmark (middle) | On one line on wider screens: the name in Inter 900 capitals (96px). On phones it's stacked, SANKO over MANGA, much bigger (SANKO about 80px, 22% of the screen width). SANKO is plain white, taking turns with サンコー (the Japanese touch; it reads "sankō", like 参考, "reference"; extra-heavy Noto Sans JP, set a little smaller to match the capitals' height, only its four characters downloaded). The swap goes sound by sound, left to right, each 130ms after the one before: SA becomes サ, N becomes ン, KO becomes コー, so the name visibly translates itself (`NAME_SOUNDS` in `config.js`). Each sound leaving drifts up, blurs and fades while its katakana settles in from below (0.7s). SANKO shows for 6 seconds (including before the first swap, so people read it first), サンコー for 3: the English name is the one people need to remember. Both share one spot, as wide as the wider of the two, so MANGA never moves. With "reduce motion" on, it stays SANKO; swapping pauses while the tab is hidden. Then MANGA in the faint grey (`#77777f`), the same two-tone mark as the small wordmark on the other pages. Screen readers hear just "sankomanga"; the katakana is decoration. The other pages show the same mark small (see "Mini wordmark"). |
+| Below the wordmark | The tagline, centred. |
+| Corners | The small print, in small (11px), spaced-out, faint capitals, 24px from the sides and 20px from the bottom: the search hint bottom-left, "Data from [AniList logo]" (14px logo) bottom-right. The home page has no footer; the other pages keep theirs. No search bar on the page. |
 | Tagline | Italic, muted grey. |
 | Search hint | Small faint text that's also a real button: "Type to search" on devices with a keyboard and mouse, "Tap to search" on touch screens. |
-| Search overlay | The search box opens on top of the page, which is dimmed and blurred. It opens by typing any letter (that letter starts the search), "/", clicking or tapping anywhere (except links), or the hint. It sits in the middle of the screen, where the name is (just clear of phone keyboards), in a bigger version of the underline style. Closes with Esc (the first Esc clears any text), a click/tap outside, or the browser's back button/gesture (it adds one history step while open; searching replaces that step, so "back" from the results goes straight home). Tab stays inside the box while open. Opens with a 0.25s fade (the box rises slightly); closes with the reverse, a 0.2s fade (the box sinks slightly). The page is usable as soon as closing starts, and typing or clicking during the fade reopens it at once. No fades with "reduce motion". While it's open, the cover rows and the SANKO ↔ サンコー swap pause (moving covers under the blur looked like they were shimmering); they carry on from the same spot when it closes. |
+| Search overlay | The search box opens on top of the page, which is dimmed and blurred. It opens by typing any letter (that letter starts the search), "/", clicking or tapping anywhere (except links), or the hint. It sits in the middle of the screen, where the name is (just clear of phone keyboards), in a bigger version of the underline style. Closes with Esc (the first Esc clears any text), a click/tap outside, or the browser's back button/gesture (it adds one history step while open; searching replaces that step, so "back" from the results goes straight home). Tab stays inside the box while open. Opens with a 0.25s fade (the box rises slightly); closes with the reverse, a 0.2s fade (the box sinks slightly). The page is usable as soon as closing starts, and typing or clicking during the fade reopens it at once. No fades with "reduce motion". While it's open, the volumes' bob, the cover swaps and the SANKO ↔ サンコー swap pause (moving things under the blur look like they're shimmering); they carry on from the same spot when it closes. |
 | Search style | Underline search, same style in the home overlay and on the results page: a single, steady grey line (no animation), placeholder "Search…", with a small magnifying-glass button on the right (both pages). The line turns a lighter grey while the box is selected (so keyboard users can see where they are). The button just turns white on hover (no backing). While there's text, a small × appears just left of it: it clears the box and keeps the cursor there (Escape does the same). Custom rather than the browser's own clear button, which looks different in every browser. Enter goes to `/search?q=...`. |
-| Motion | With "reduce motion" on: still rows, no entrance animation. Gliding pauses while the tab is hidden. |
-| Loading / failure | Search (the overlay) works immediately; the rows fade in once the list arrives, and each cover shows its own colour until its image loads. If the covers can't load, the rows simply stay empty. |
+| Motion | With "reduce motion" on: still volumes (no bob, no mouse depth, no cover swaps), no entrance animation. The bob and swaps pause while the tab is hidden or the search box is open. |
+| Loading / failure | Search (the overlay) works immediately; the volumes fade in once the list arrives, and each cover shows its own colour until its image loads. If the covers can't load, the page simply has no volumes. |
 
 App name: **sankomanga** (the domain will be English too). Tagline: "explore
 your next manga". Both live in one place each (`web/static/js/config.js`,
-plus `appName` in `config.go` for the backend), as do the art-filled word
-(`ART_WORD`) and the Japanese name (`JAPANESE_NAME`). The name is written
-lowercase everywhere except the home page wordmark, which is set in capitals
-(a logo can be styled differently from the name in text). Logo: the home
+plus `appName` in `config.go` for the backend), as do the part shown in grey
+(`GREY_WORD`) and the Japanese name (`JAPANESE_NAME`). The name is written
+lowercase in text (tab titles, the domain); the wordmarks, big and small,
+are set in capitals (a logo can be styled differently from the name in
+text). Logo: the home
 page wordmark for now.
 
 Tried and dropped for the home page (kept here so we don't repeat them):
@@ -64,6 +66,19 @@ Tried and dropped for the home page (kept here so we don't repeat them):
 - A different cover inside each letter of "manga" (lowercase): colourful
   covers in small lowercase letters looked busy; replaced by black-and-white
   manga art in capital MANGA.
+- Covers as 3D manga books (turned 32°, cream page blocks on the left edge
+  and top, back cover), and then with a made-up spine (AniList has no
+  spine images): distinctive, but it needed invented parts to look real,
+  and it was the only 3D object on the site (replaced by flat covers,
+  matching the other pages).
+- Volumes as a flat tilted cover with a thin page strip, and covers that
+  faded out to blank before the next faded in: looked like a card, not a
+  book, and the swap flashed (replaced by full 3D books and a crossfade).
+- Two rows of covers gliding endlessly across the top and bottom, the name
+  between them (replaced by the floating volumes: calmer, more space, and
+  much lighter to load).
+- A caption row under the name (search hint left, credit right, lined up
+  with the name's edges): moved to the bottom corners with the volumes.
 - The hint and the credit as two separate centred lines under the tagline:
   next to the huge name they looked like leftovers (replaced by the caption
   row).
@@ -71,6 +86,10 @@ Tried and dropped for the home page (kept here so we don't repeat them):
   generic; replaced by the sound-by-sound swap.
 - サンコー as a huge, very dark watermark behind the name (replaced by
   SANKO and サンコー taking turns in the name itself).
+- MANGA as an image with black-and-white manga art inside each letter: the
+  only art available showed existing series' characters (fine as a private
+  preview, not for a public logo); replaced by MANGA in grey, matching the
+  small wordmark, which is simpler, faster and the same mark everywhere.
 - A manga page texture drawn in CSS inside MANGA (screentone, speed lines,
   hatching, panel gutters): at this size it read as stripes, like a glitch.
 

@@ -1,33 +1,16 @@
 // The home page: builds the big wordmark (SANKO in white, taking turns
-// with サンコー, then MANGA as black-and-white manga art), fills two rows of popular covers (from
-// /api/showcase) that glide slowly across the top and bottom of the screen
-// in opposite directions, and sets up the search box that opens on top of
-// the page (search-overlay.js).
+// with サンコー, then MANGA in grey), places a few popular manga covers
+// (from /api/showcase) floating around it, and sets up the search
+// box that opens on top of the page (search-overlay.js).
 //
-// The covers are shuffled on every visit, and each row gets its own half,
-// so every cover on the page is different.
-//
-// The gliding itself is CSS (.cover-track in style.css); this file only
-// builds the rows and sets their speed.
-//
-// To keep the page light, each cover's image is only downloaded when the
-// cover glides close to the screen (most start off-screen), and the
-// browser picks the image size that fits the screen (see loadImage).
+// The volumes stay alive in three quiet ways: each one bobs slowly (CSS),
+// on desktops they shift a little with the mouse, nearer ones more (depth),
+// and every few seconds one cover fades into a different popular manga.
+// The covers are shuffled on every visit, so no two visits look the same.
 
 import { fillBranding } from "./common.js";
-import { APP_NAME, ART_WORD, JAPANESE_NAME, NAME_SOUNDS } from "./config.js";
+import { APP_NAME, GREY_WORD, JAPANESE_NAME, NAME_SOUNDS } from "./config.js";
 import { setUpSearchOverlay } from "./search-overlay.js";
-
-// The wordmark art: an image of ART_WORD with manga art inside its
-// letters, on a transparent background. If it doesn't exist, the word is
-// shown as styled text instead (see .wordmark-art in style.css).
-//
-// Its size in pixels, so the page can keep exactly the right space for it
-// before it has downloaded (only the shape, width ÷ height, matters, not
-// the exact numbers). Update these whenever the image file changes.
-const WORDMARK_ART = "/static/img/manga-art.png";
-const WORDMARK_ART_WIDTH = 640;
-const WORDMARK_ART_HEIGHT = 166;
 
 // How long each version of the name stays before swapping: the English
 // one longer, since that's the name people need to remember and type.
@@ -38,31 +21,21 @@ const JAPANESE_SHOWN_MS = 3000;
 
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-// How fast the rows glide, in pixels per second: slow enough to read as
-// calm background movement rather than something to follow.
-const GLIDE_PX_PER_SECOND = 22;
+// How many volumes the page has room for. The CSS shows all of them on
+// laptops, fewer on phones (see .volume:nth-child in style.css).
+const VOLUME_COUNT = 8;
 
-// A cover's image is downloaded once the cover is within this distance of
-// the screen's sides: a head start of about 14 seconds at the gliding
-// speed, so images are ready before they come into view.
-const LOAD_AHEAD_PX = 300;
+// How often one cover is swapped for another, and how long the new one
+// takes to fade in over the old (the same as the fade in style.css).
+const SWAP_EVERY_MS = 5000;
+const CROSSFADE_MS = 1200;
 
-// How often to check which covers have come near the screen.
-const CHECK_EVERY_MS = 1000;
-
-// After the screen is rotated or the window resized, how long to wait for
-// it to settle before rebuilding the rows (a window being dragged to a
-// new size sends many resize events; this rebuilds once, at the end).
-const RESIZE_SETTLE_MS = 250;
+// Roughly how wide a volume's cover is drawn, for the browser to pick the
+// right image size: 27% of the screen on phones, at most 124px elsewhere.
+const COVER_SIZES = "(max-width: 720px) 27vw, 124px";
 
 const home = document.querySelector(".home");
-const topRow = document.querySelector(".cover-row--top");
-const bottomRow = document.querySelector(".cover-row--bottom");
-
-// Each row's covers, kept so the row can be rebuilt after a resize, and
-// each row's image-loading timer, so a rebuild can stop the old one.
-const rowCovers = new Map();
-const rowLoaders = new Map();
+const volumesLayer = document.querySelector(".volumes");
 
 fillBranding();
 buildWordmark();
@@ -70,22 +43,21 @@ loadJapaneseFont();
 setUpSearchOverlay();
 loadCovers();
 pauseWhileHidden();
-refillRowsAfterResize();
+followMouse();
 
 // --- The wordmark ----------------------------------------------------------
 
 // buildWordmark splits the name in the heading into two parts: the start
-// ("sanko") stays plain white and takes turns with JAPANESE_NAME
-// (サンコー), and ART_WORD at the end ("manga") becomes the art: the image
-// once it has loaded, the styled text until then (or for good, if there's
-// no image). The CSS shows the wordmark in capitals.
+// ("sanko") in white, taking turns with JAPANESE_NAME (サンコー), and
+// GREY_WORD at the end ("manga") in grey, like the small wordmark on the
+// other pages. The CSS shows the wordmark in capitals.
 //
 // Screen readers might read a name split into parts oddly, so the visible
 // wordmark is hidden from them and the plain name is read instead.
 function buildWordmark() {
   const heading = document.querySelector(".brand-name");
-  const hasArtWord = ART_WORD !== "" && APP_NAME.endsWith(ART_WORD);
-  const plainPart = hasArtWord ? APP_NAME.slice(0, -ART_WORD.length) : APP_NAME;
+  const hasGreyWord = GREY_WORD !== "" && APP_NAME.endsWith(GREY_WORD);
+  const plainPart = hasGreyWord ? APP_NAME.slice(0, -GREY_WORD.length) : APP_NAME;
 
   const forScreenReaders = document.createElement("span");
   forScreenReaders.className = "visually-hidden";
@@ -96,46 +68,14 @@ function buildWordmark() {
   visible.setAttribute("aria-hidden", "true");
   visible.append(createNameSwap(plainPart));
 
-  if (hasArtWord) {
-    visible.append(createArt());
+  if (hasGreyWord) {
+    const grey = document.createElement("span");
+    grey.className = "wordmark-grey";
+    grey.textContent = GREY_WORD;
+    visible.append(grey);
   }
 
   heading.replaceChildren(forScreenReaders, visible);
-}
-
-// createArt builds the art image for ART_WORD. It goes into the name
-// straight away, with its width and height set, so the browser keeps
-// exactly the right space for it while it downloads: nothing around it
-// moves when it arrives. Until then it's invisible (.is-loading); then it
-// fades into its space. If the browser already has it, it's simply there.
-//
-// If the image is missing (say, a fresh copy of the project without the
-// art), the styled word takes its place. That's known within moments,
-// while the name is still rising into view.
-function createArt() {
-  const image = new Image(WORDMARK_ART_WIDTH, WORDMARK_ART_HEIGHT);
-  image.className = "wordmark-art-image is-loading";
-  image.alt = ""; // the heading's hidden text already says the name
-  image.decoding = "async";
-
-  image.addEventListener("load", () => image.classList.remove("is-loading"), { once: true });
-  image.addEventListener("error", () => image.replaceWith(createStyledWord()), { once: true });
-  image.src = WORDMARK_ART;
-
-  if (image.complete && image.naturalWidth > 0) {
-    // Already downloaded on an earlier visit: no need to fade.
-    image.classList.remove("is-loading");
-  }
-  return image;
-}
-
-// createStyledWord builds ART_WORD as styled text, for when there's no
-// art image (see .wordmark-art in style.css).
-function createStyledWord() {
-  const word = document.createElement("span");
-  word.className = "wordmark-art";
-  word.textContent = ART_WORD;
-  return word;
 }
 
 // createNameSwap builds the spot where the start of the name ("sanko")
@@ -222,11 +162,12 @@ function shuffled(list) {
   return copy;
 }
 
-// --- The rows of covers ----------------------------------------------------
+// --- The volumes -----------------------------------------------------------
 
-// loadCovers fetches the covers and fills both rows. The search works the
-// whole time; the rows fade in once they're ready. If anything goes wrong,
-// the rows simply stay empty (only decoration is missing).
+// loadCovers fetches the covers and puts one in each volume. The search
+// works the whole time; the volumes fade in once they're ready. If
+// anything goes wrong, the page simply has no volumes (only decoration
+// is missing).
 async function loadCovers() {
   try {
     const response = await fetch("/api/showcase");
@@ -238,148 +179,164 @@ async function loadCovers() {
       throw new Error("showcase has no covers");
     }
 
-    // A different mix on every visit, and each row gets its own half of
-    // the list, so every cover on the screen is different. (With a single
-    // cover, both rows share it.)
+    // A different mix on every visit: the first few go into the volumes,
+    // the rest wait their turn to be swapped in.
     const mixed = shuffled(covers);
-    const half = Math.ceil(mixed.length / 2);
-    fillRow(topRow, mixed.slice(0, half));
-    fillRow(bottomRow, mixed.length > 1 ? mixed.slice(half) : mixed);
+    const volumes = mixed.slice(0, VOLUME_COUNT).map(createVolume);
+    const waiting = mixed.slice(VOLUME_COUNT);
+
+    volumesLayer.append(...volumes.map((volume) => volume.element));
+    volumesLayer.classList.add("is-ready");
+
+    if (!reduceMotion && waiting.length > 0) {
+      swapCovers(volumes, waiting);
+    }
   } catch (error) {
-    console.warn("Cover rows unavailable:", error);
+    console.warn("Volumes unavailable:", error);
   }
 }
 
-// fillRow puts the covers into a row's strip, then a second identical
-// copy right after them. The CSS slides the strip by exactly one copy and
-// starts again, which looks like an endless row.
-function fillRow(row, covers) {
-  const track = row.querySelector(".cover-track");
-  rowCovers.set(row, covers);
-  clearInterval(rowLoaders.get(row)); // stop loading images for an older strip
+// createVolume builds one volume (see "the volumes" in style.css for its
+// layers) with a cover in it. It returns the volume, its cover element,
+// and which manga it shows now.
+function createVolume(cover) {
+  const element = document.createElement("div");
+  element.className = "volume";
 
-  // One copy must be at least as wide as the screen, or a gap would show
-  // at the end of the loop. 15 covers are plenty on most screens (so no
-  // cover shows twice); only very wide screens repeat the list. The limit
-  // of 10 copies is a safety net: if the covers ever had no width (say, a
-  // very short screen), the strip would never get wider and this would
-  // otherwise repeat forever.
-  let oneCopy = covers;
-  track.replaceChildren(...oneCopy.map(createCover));
-  for (let copies = 1; copies < 10 && track.scrollWidth < window.innerWidth; copies++) {
-    oneCopy = [...oneCopy, ...covers];
-    track.append(...covers.map(createCover));
-  }
+  const float = document.createElement("div");
+  float.className = "volume-float";
 
-  // The second copy: the same covers again (the browser downloads each
-  // image only once).
-  track.append(...oneCopy.map(createCover));
+  const coverElement = document.createElement("div");
+  coverElement.className = "volume-cover";
+  showCover(coverElement, cover);
 
-  // Download each image only when its cover nears the screen.
-  rowLoaders.set(row, loadImagesNearScreen(track));
-
-  // The same speed for both rows, whatever their length: the time to
-  // slide one copy's width.
-  const copyWidth = track.scrollWidth / 2;
-  track.style.setProperty("--row-duration", `${copyWidth / GLIDE_PX_PER_SECOND}s`);
-
-  row.classList.add("is-ready");
+  float.append(coverElement);
+  element.append(float);
+  return { element, coverElement, cover };
 }
 
-// createCover builds one cover, without its image yet (loadImage adds it
-// later). Until the image has downloaded, the cover shows its own colour
-// (dimmed by the CSS); then the image fades in.
-function createCover(cover) {
-  const item = document.createElement("div");
-  item.className = "row-cover";
+// showCover puts a manga's cover image on a volume. The new image is laid
+// on top of any old one and fades in over it (a crossfade); once it has,
+// the old one is removed. The first time, there's no old image: the
+// volume shows the cover's own colour (dimmed by the CSS) until the image
+// has downloaded.
+//
+// It offers the browser both sizes and says roughly how wide a volume is
+// drawn ("sizes"), so the browser downloads just one: the 230px image on
+// ordinary screens, the 460px one on sharp "Retina" screens.
+// loading="lazy" means volumes the CSS hides (on phones) never download.
+function showCover(coverElement, cover) {
   if (cover.coverColor) {
-    item.style.setProperty("--card-color", cover.coverColor);
+    coverElement.style.setProperty("--card-color", cover.coverColor);
+  } else {
+    coverElement.style.removeProperty("--card-color");
   }
-  // Remember the image addresses until it's time to download.
-  item.dataset.src = cover.coverUrl;
-  item.dataset.src2x = cover.coverUrl2x;
-  return item;
-}
 
-// loadImagesNearScreen checks once a second where the row's covers are
-// and loads the images of those near the screen, until every cover has
-// its image. (The browser's IntersectionObserver, made for exactly this,
-// misses covers moved by a CSS animation: the browser slides them
-// without telling the page's scripts. Asking for each cover's position
-// always gives where it is right now.)
-function loadImagesNearScreen(track) {
-  const waiting = new Set(track.children);
-
-  const check = () => {
-    for (const item of waiting) {
-      const box = item.getBoundingClientRect();
-      if (box.right > -LOAD_AHEAD_PX && box.left < window.innerWidth + LOAD_AHEAD_PX) {
-        waiting.delete(item);
-        loadImage(item);
-      }
-    }
-    if (waiting.size === 0) {
-      clearInterval(timer);
-    }
-  };
-
-  const timer = setInterval(check, CHECK_EVERY_MS);
-  check(); // the covers already on screen load straight away
-  return timer;
-}
-
-// loadImage adds a cover's image. It offers the browser both sizes and
-// tells it how wide the cover is drawn ("sizes"); the browser then
-// downloads just one: the 230px image on ordinary screens, the 460px one
-// on sharp "Retina" screens, where the small one would look blurry.
-function loadImage(item) {
   const image = document.createElement("img");
   image.alt = ""; // decorative: nothing for screen readers to announce
   image.decoding = "async";
+  image.loading = "lazy";
   // Listen for "load" before setting the sources, so we can't miss the
   // event when the image is already in the browser's cache.
-  image.addEventListener("load", () => image.classList.add("is-loaded"), { once: true });
-  image.sizes = `${item.offsetWidth}px`;
-  image.srcset = `${item.dataset.src} 230w, ${item.dataset.src2x} 460w`;
-  image.src = item.dataset.src; // for very old browsers without srcset
+  const oldImages = [...coverElement.querySelectorAll("img")];
+  image.addEventListener("load", () => {
+    // Wait until the browser has drawn the image invisible once: an image
+    // that was already downloaded loads instantly, and would otherwise go
+    // straight to fully visible without fading.
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      image.classList.add("is-loaded");
+      setTimeout(() => oldImages.forEach((old) => old.remove()), CROSSFADE_MS);
+    }));
+  }, { once: true });
+  image.sizes = COVER_SIZES;
+  image.srcset = coverSrcset(cover);
+  image.src = cover.coverUrl; // for very old browsers without srcset
 
-  item.append(image);
+  coverElement.append(image);
 }
 
-// refillRowsAfterResize rebuilds both rows once the screen has been
-// rotated or the window resized. The covers' size follows the screen (the
-// CSS does that), but how many copies a strip needs to cover the screen's
-// width, and how long one loop takes at the gliding speed, were worked
-// out for the old size: a phone turned sideways can be twice as wide with
-// covers half as tall, which would leave a gap at the end of the loop.
-// (The images are already downloaded, so a rebuild is quick.)
-function refillRowsAfterResize() {
-  let lastWidth = window.innerWidth;
-  let lastHeight = window.innerHeight;
-  let settleTimer = null;
+// swapCovers fades one volume's cover into a different popular manga
+// every SWAP_EVERY_MS. The manga take turns: the one leaving goes to the
+// back of the waiting line, so over a visit many different ones appear.
+// Only volumes that are showing count (phones hide some), a volume is
+// never picked twice in a row, and nothing happens while the tab is
+// hidden or the search box is open.
+function swapCovers(volumes, waiting) {
+  let lastPicked = null;
 
-  window.addEventListener("resize", () => {
-    clearTimeout(settleTimer);
-    settleTimer = setTimeout(() => {
-      // Phones also send "resize" when their toolbars slide in or out; a
-      // small change in height alone isn't worth a rebuild.
-      const widthChanged = window.innerWidth !== lastWidth;
-      const heightChangedALot = Math.abs(window.innerHeight - lastHeight) > 120;
-      if (!widthChanged && !heightChangedALot) {
-        return;
-      }
-      lastWidth = window.innerWidth;
-      lastHeight = window.innerHeight;
+  setInterval(async () => {
+    const searching = document.body.classList.contains("search-open");
+    if (document.hidden || searching) {
+      return;
+    }
 
-      for (const [row, covers] of rowCovers) {
-        fillRow(row, covers);
-      }
-    }, RESIZE_SETTLE_MS);
+    const showing = volumes.filter((volume) => volume.element.offsetParent !== null);
+    const choices = showing.filter((volume) => volume !== lastPicked);
+    if (choices.length === 0) {
+      return;
+    }
+    const volume = choices[Math.floor(Math.random() * choices.length)];
+    lastPicked = volume;
+
+    const next = waiting.shift();
+    waiting.push(volume.cover);
+    volume.cover = next;
+
+    // Download the next cover first, so it's ready to fade straight in
+    // over the old one.
+    await preloadCover(next);
+    showCover(volume.coverElement, next);
+  }, SWAP_EVERY_MS);
+}
+
+// preloadCover downloads a cover, at the same size showCover will pick,
+// and finishes when it's ready (or failed: then the old cover simply
+// stays a little longer).
+function preloadCover(cover) {
+  return new Promise((resolve) => {
+    const image = new Image();
+    image.onload = resolve;
+    image.onerror = resolve;
+    image.sizes = COVER_SIZES;
+    image.srcset = coverSrcset(cover);
+    image.src = cover.coverUrl;
   });
 }
 
-// pauseWhileHidden stops the gliding while the browser tab isn't visible,
-// so it doesn't use the visitor's battery for nothing.
+// coverSrcset lists a cover's two sizes for the browser to choose from.
+function coverSrcset(cover) {
+  return `${cover.coverUrl} 230w, ${cover.coverUrl2x} 460w`;
+}
+
+// followMouse gives the volumes a sense of depth on desktops: as the mouse
+// moves, each volume shifts a few pixels the same way, nearer ones more
+// (their --depth in style.css). It sets --mx and --my (from -1 to 1, the
+// mouse's position from the page's centre) and the CSS does the rest.
+// Not on touch screens (no mouse), nor with "reduce motion".
+function followMouse() {
+  const hasMouse = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+  if (reduceMotion || !hasMouse) {
+    return;
+  }
+
+  let frameRequested = false;
+  document.addEventListener("pointermove", (event) => {
+    if (frameRequested) {
+      return; // at most one update per screen refresh
+    }
+    frameRequested = true;
+    requestAnimationFrame(() => {
+      frameRequested = false;
+      const x = (event.clientX / window.innerWidth) * 2 - 1;
+      const y = (event.clientY / window.innerHeight) * 2 - 1;
+      volumesLayer.style.setProperty("--mx", x.toFixed(3));
+      volumesLayer.style.setProperty("--my", y.toFixed(3));
+    });
+  });
+}
+
+// pauseWhileHidden stops the volumes floating while the browser tab isn't
+// visible, so it doesn't use the visitor's battery for nothing.
 function pauseWhileHidden() {
   document.addEventListener("visibilitychange", () => {
     home.classList.toggle("is-paused", document.hidden);

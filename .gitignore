@@ -8,8 +8,3 @@
 
 # Local environment overrides
 .env
-
-# Private preview only: the home page wordmark art made with existing
-# series' characters. Never commit or deploy it; replace it with original
-# art (then delete these lines so the real file is committed).
-/web/static/img/manga-art.png

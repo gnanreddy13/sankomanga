@@ -5,10 +5,12 @@
 export const APP_NAME = "sankomanga";
 export const TAGLINE = "explore your next manga";
 
-// The home page's big wordmark (see buildWordmark in home.js):
-// - ART_WORD: the end of APP_NAME whose letters show manga art through
-//   them. If APP_NAME doesn't end with it, the whole name stays plain
-//   white.
+// The wordmark (the big name on the home page, and the small one at the
+// top of the other pages; see buildWordmark in home.js and
+// fillMiniWordmark in common.js):
+// - GREY_WORD: the end of APP_NAME shown in grey, after the start in
+//   white (SANKO in white, MANGA in grey). If APP_NAME doesn't end with
+//   it, the whole name is white.
 // - NAME_SOUNDS: the start of the name ("sanko") split into its sounds,
 //   each with its katakana. On the home page the name takes turns with
 //   its Japanese spelling, サンコー, sound by sound: SA becomes サ, N
@@ -17,7 +19,7 @@ export const TAGLINE = "explore your next manga";
 //   pages don't show it. Set it to [] to keep the name still.
 //   (If the sounds don't spell the start of the name, the whole word
 //   swaps at once instead.)
-export const ART_WORD = "manga";
+export const GREY_WORD = "manga";
 export const NAME_SOUNDS = [
   ["sa", "サ"],
   ["n", "ン"],
